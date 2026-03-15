@@ -1,0 +1,15 @@
+# API Keys Configuration Example
+# Copy this file to api_keys.yaml and fill in your actual keys
+
+# OpenAI API Key for LLM access
+openai:
+  api_key: "sk-your-api-key-here"
+  base_url: "https://api.openai.com/v1"
+
+# Alternative LLM providers (optional)
+# anthropic:
+#   api_key: "your-key-here"
+#
+# azure:
+#   api_key: "your-key-here"
+#   endpoint: "https://your-resource.openai.azure.com/"
