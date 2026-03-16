@@ -1,0 +1,30 @@
+# Model Selector Configuration
+# Configure which model to use for different tasks
+
+models:
+  # For code generation and reasoning
+  code_generation:
+    provider: deepseek
+    model: deepseek-chat
+    temperature: 0.1
+
+  # For embedding and retrieval
+  embedding:
+    provider: sentence-transformers
+    model: all-MiniLM-L6-v2
+
+  # For error analysis (optional, use more capable model)
+  error_analysis:
+    provider: deepseek
+    model: deepseek-chat
+    temperature: 0.2
+
+# Fallback configuration
+fallback:
+  enabled: true
+  # If primary model fails, try these in order
+  providers:
+    - provider: deepseek
+      model: deepseek-chat
+    - provider: mock
+      model: mock

@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-02-27T07:50:28.241902",
+  "processed_files": 3,
+  "total_chunks": 1868,
+  "providers": [
+    "tencent",
+    "google",
+    "alibaba"
+  ],
+  "db_path": "./vector_db",
+  "collection_name": "cloud_security_benchmarks"
+}

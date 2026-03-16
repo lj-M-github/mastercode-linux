@@ -1,0 +1,24 @@
+ Security Hardening Automation Framework for Regulatory Compliance
+Core Idea: Automated system for applying and maintaining security baselines (CIS, STIG, NIST) across Windows and Linux systems with compliance reporting.
+Research Plan:
+1.	Introduction  
+o	Compliance challenges in regulated industries
+o	Manual hardening limitations
+o	Research: continuous compliance automation
+2.	Compliance Framework Analysis  
+o	Study of CIS Benchmarks, DISA STIGs
+o	Regulatory requirements mapping (GDPR, HIPAA, PCI-DSS)
+o	Gap analysis in existing tools
+3.	Policy Engine Design  
+o	Policy definition language
+o	Risk scoring algorithm
+o	Exception management system
+4.	Implementation  
+o	Windows security module (GPO, registry, permissions)
+o	Linux security module (SELinux/AppArmor, PAM, auditd)
+o	Reporting and dashboard system
+5.	Validation  
+o	Security effectiveness testing
+o	Performance impact assessment
+o	Compliance audit simulation
+o	Comparison with manual processes

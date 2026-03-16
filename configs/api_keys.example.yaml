@@ -1,0 +1,19 @@
+# API Keys Configuration Example
+# Copy this file to api_keys.yaml and fill in your actual keys
+
+# DeepSeek API Key for LLM access
+deepseek:
+  api_key: "sk-your-deepseek-api-key-here"
+  base_url: "https://api.deepseek.com"
+
+# Alternative LLM providers (optional)
+# openai:
+#   api_key: "sk-your-api-key-here"
+#   base_url: "https://api.openai.com/v1"
+#
+# anthropic:
+#   api_key: "your-key-here"
+#
+# azure:
+#   api_key: "your-key-here"
+#   endpoint: "https://your-resource.openai.azure.com/"

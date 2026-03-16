@@ -1,0 +1,32 @@
+Master's Thesis
+ISU ID: 321640
+Name: MOU LINGJIE
+1. Thesis Topic
+Topic: Research on Intelligent System Dynamic Security Hardening Framework Based on Large Language Model and RAG Technology
+2. Research Plan & Structure
+Topic: " Research on Intelligent System Dynamic Security Hardening Framework Based on Large Language Model and RAG Technology"
+SectionSpecific ContentTopicResearch on Intelligent System Dynamic Security Hardening Framework Based on Large Language Model and RAG TechnologyINTRODUCTIONRelevance: Rapid updates in regulatory standards (e.g., CIS, STIG) and the complexity of heterogeneous OS environments create a significant maintenance burden.
+Problem: Manual hardening is error-prone, while existing static automation tools lack the adaptability to dynamically interpret new policy documents.
+Goal: To develop an intelligent framework utilizing Retrieval-Augmented Generation (RAG) to interpret security policies and generate executable remediation scripts.
+Hypothesis: The proposed intelligent agent will reduce the time required to implement new security baselines by over 50% compared to manual scripting.
+Novelty: Implementation of a closed-loop feedback mechanism where the system automatically rectifies code errors based on execution logs.Chapter 1Review: Look at current tools (Ansible, OpenSCAP) and their limits (too static).
+Task: Define the input (PDF Policy) and output (Ansible Playbook).
+Metrics: Measure "Success Rate" (does the code work?) and "Time Saved" (is it faster than humans?).Chapter 2Architecture: The "Brain" (LLM) + "Library" (Vector DB) + "Hands" (Ansible Execution).
+Core Feature: The Self-Healing Loop ¡ª if the AI's code fails, it reads the error and fixes itself.
+Tools: Python, LangChain, DeepSeek/OpenAI API, Ansible.Chapter 3Setup: Two groups of servers (Linux).
+Test: Group A uses manual scripts; Group B uses my AI Agent.
+Results: Compare how many minutes it takes to secure the system (Time Efficiency) and how accurate the scripts are.CONCLUSIONSummary: The AI Agent successfully automates security hardening.
+Impact: Reduces manual work by ~50%.
+Future: Add support for Windows and Network devices.APPENDICESA. Source Code: Python scripts for the RAG Agent and vector retrieval.
+B. Prompts: The specific instructions used to guide the LLM in generating Ansible code.
+C. Test Results: Data tables comparing the time and accuracy of AI vs. Manual hardening.
+
+
+3. Brief Essay on the Research Topic
+Topic: Research on Intelligent System Dynamic Security Hardening Framework Based on Large Language Model and RAG Technology.
+The relevance of this research is underscored by the increasing pressure on organizations to maintain strict security postures in the face of evolving cyber threats and regulatory requirements (such as CIS Benchmarks, PCI-DSS, and GDPR). As enterprise environments become more heterogeneous, mixing Windows and Linux systems, the complexity of managing security configurations grows exponentially.
+The research goal is to design and empirically validate an Intelligent Dynamic Security Hardening Framework. This system leverages Retrieval-Augmented Generation (RAG) to allow the system to "read" and comprehend unstructured security documentation (e.g., PDF benchmarks) and uses a Large Language Model (LLM) to automatically generate the corresponding infrastructure code (e.g., Ansible Playbooks) to enforce these rules.
+The methodology involves building a Knowledge Base from standard security guides, developing a Reasoning Engine that translates natural language rules into executable scripts, and implementing a dynamic execution feedback loop. This feedback loop is the core novelty, enabling the system to detect execution errors and self-correct its generated code, ensuring high reliability.
+Chapter 1 Domain Analysis & Problem Formulation This chapter analyzes the "Semantic Gap" in current compliance tools like OpenSC  AP. Existing solutions rely on static rules and cannot interpret natural language policies from new PDF benchmarks. The research defines requirements for an intelligent agent capable of automatically converting unstructured security documents into valid executable remediation scripts.
+Chapter 2 The proposed solution features a Closed-Loop Agent architecture. It uses RAG to retrieve specific rules from documents and an LLM to generate Ansible code. The core innovation is the "Self-Healing" mechanism: if a script fails during the sandbox execution, the system analyzes the error log and automatically rewrites the code.
+Chapter 3 Experimental Research & Results Analysis The study employs A/B testing in a virtualized Linux environment. It compares "Manual Hardening" against the "AI Agent" approach. Key metrics include Time Efficiency and Script Accuracy. The expected result is a demonstration that the AI agent reduces operational time by approximately 50% while maintaining high compliance scores.
