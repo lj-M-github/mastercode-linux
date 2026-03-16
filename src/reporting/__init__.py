@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """Reporting module - Generate reports and audit logs."""
 
 from reporting.report_generator import ReportGenerator
@@ -8,14 +7,3 @@ __all__ = [
     "ReportGenerator",
     "AuditLog"
 ]
-=======
-"""Reporting module - Generate reports and audit logs."""
-
-from reporting.report_generator import ReportGenerator
-from reporting.audit_log import AuditLog
-
-__all__ = [
-    "ReportGenerator",
-    "AuditLog"
-]
->>>>>>> af8c867f338f63811bf4407b052c5188fe3ab43c
