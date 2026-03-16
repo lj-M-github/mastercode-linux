@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """单元测试 - LLM 模块."""
 
 import unittest
@@ -107,7 +106,6 @@ class TestSystemPrompt(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-=======
 """单元测试 - LLM 模块."""
 
 import unittest
@@ -216,4 +214,3 @@ class TestSystemPrompt(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
->>>>>>> af8c867f338f63811bf4407b052c5188fe3ab43c

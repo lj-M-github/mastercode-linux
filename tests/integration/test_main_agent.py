@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """集成测试 - Main Agent."""
 
 import unittest
@@ -181,7 +180,6 @@ class TestSecurityHardeningAgent(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-=======
 """集成测试 - Main Agent."""
 
 import unittest
@@ -364,4 +362,3 @@ class TestSecurityHardeningAgent(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
->>>>>>> af8c867f338f63811bf4407b052c5188fe3ab43c

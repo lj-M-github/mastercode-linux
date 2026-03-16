@@ -3,8 +3,8 @@
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
-from llm.llm_client import LLMClient
-from llm.prompt_templates import PromptTemplate, ERROR_ANALYSIS_TEMPLATE
+from ..llm.llm_client import LLMClient
+from ..llm.prompt_templates import PromptTemplate, ERROR_ANALYSIS_TEMPLATE
 
 
 @dataclass

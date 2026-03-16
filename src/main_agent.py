@@ -4,16 +4,16 @@ import re
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-from rag.knowledge_store import KnowledgeStore
-from llm.llm_client import LLMClient
-from llm.prompt_templates import (
+from .rag.knowledge_store import KnowledgeStore
+from .llm.llm_client import LLMClient
+from .llm.prompt_templates import (
     CODE_GENERATION_SYSTEM_PROMPT,
     SECURITY_REMEDIATION_TEMPLATE,
 )
-from executor.ansible_runner import AnsibleRunner
-from feedback.self_heal import SelfHealer
-from reporting.report_generator import ReportGenerator
-from reporting.audit_log import AuditLog
+from .executor.ansible_runner import AnsibleRunner
+from .feedback.self_heal import SelfHealer
+from .reporting.report_generator import ReportGenerator
+from .reporting.audit_log import AuditLog
 
 
 class SecurityHardeningAgent:

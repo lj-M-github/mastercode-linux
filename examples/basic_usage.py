@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #!/usr/bin/env python
 """使用示例 - 演示 Security Hardening Framework 的基本用法。
 
@@ -205,7 +204,6 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-=======
 #!/usr/bin/env python
 """使用示例 - 演示 Security Hardening Framework 的基本用法。
 
@@ -412,4 +410,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
->>>>>>> af8c867f338f63811bf4407b052c5188fe3ab43c

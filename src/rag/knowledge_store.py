@@ -3,9 +3,9 @@
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-from vector_db.chroma_client import ChromaClient
-from vector_db.embedding import EmbeddingModel
-from rag.retriever import Retriever, RetrievalResult
+from ..vector_db.chroma_client import ChromaClient
+from ..vector_db.embedding import EmbeddingModel
+from .retriever import Retriever, RetrievalResult
 
 
 class KnowledgeStore:

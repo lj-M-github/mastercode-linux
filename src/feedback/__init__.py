@@ -1,8 +1,8 @@
 """Feedback module - Result parsing, error analysis, and self-healing."""
 
-from feedback.result_parser import ResultParser
-from feedback.error_analyzer import ErrorAnalyzer
-from feedback.self_heal import SelfHealer
+from .result_parser import ResultParser
+from .error_analyzer import ErrorAnalyzer
+from .self_heal import SelfHealer
 
 __all__ = [
     "ResultParser",

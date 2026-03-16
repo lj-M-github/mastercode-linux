@@ -144,8 +144,7 @@ def create_tarball_package():
         f.write('\n'.join(file_list))
 
     # 使用 tar 命令
-    cmd = f"tar -czf {tar_path} -C {ROOT_DIR} -T {list_path}"
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(["tar", "-czf", str(tar_path), "-C", str(ROOT_DIR), "-T", str(list_path)], check=True)
 
     # 清理临时文件
     list_path.unlink()

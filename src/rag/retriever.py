@@ -3,8 +3,8 @@
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
-from vector_db.chroma_client import ChromaClient
-from vector_db.embedding import EmbeddingModel
+from ..vector_db.chroma_client import ChromaClient
+from ..vector_db.embedding import EmbeddingModel
 
 
 @dataclass

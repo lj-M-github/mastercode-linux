@@ -4,9 +4,9 @@ from typing import Dict, Any, List, Optional, Tuple, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from llm.llm_client import LLMClient
-from llm.prompt_templates import PromptTemplate, SELF_HEALING_TEMPLATE
-from feedback.error_analyzer import ErrorAnalyzer, ErrorAnalysis
+from ..llm.llm_client import LLMClient
+from ..llm.prompt_templates import PromptTemplate, SELF_HEALING_TEMPLATE
+from .error_analyzer import ErrorAnalyzer, ErrorAnalysis
 
 
 @dataclass
