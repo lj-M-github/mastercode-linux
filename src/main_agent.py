@@ -481,6 +481,9 @@ class SecurityHardeningAgent:
                             ),
                         },
                     )
+                    # 确保记录最后一次执行结果
+                    if heal_result.execution_result is not None:
+                        exec_result = heal_result.execution_result
 
             # 5. 记录结果
             self.report_generator.add_result(

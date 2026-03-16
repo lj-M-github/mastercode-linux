@@ -86,6 +86,7 @@ class SelfHealer:
         error_history = []
         current_playbook = original_playbook
         attempted_rewrites = 0
+        last_execution_result = None
 
         for attempt in range(1, self.max_retries + 1):
             # 对不可重试错误立即停止，避免无意义重试
@@ -114,6 +115,7 @@ class SelfHealer:
             # 优先使用真实执行结果（如果提供了回调）
             if execute_fn is not None:
                 retry_result = execute_fn(current_playbook)
+                last_execution_result = retry_result  # 记录最后一次执行结果
                 if getattr(retry_result, "success", False):
                     return HealingResult(
                         success=True,
@@ -142,7 +144,8 @@ class SelfHealer:
             success=False,
             rewritten_playbook=current_playbook,
             attempts=attempted_rewrites,
-            error_history=error_history
+            error_history=error_history,
+            execution_result=last_execution_result
         )
 
     def _rewrite_playbook(
