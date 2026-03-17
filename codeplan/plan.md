@@ -338,6 +338,60 @@ python -c "from src.main_agent import SecurityHardeningAgent; agent = SecurityHa
 
 ---
 
-**最后更新**: 2026-03-14
+## 13. 2026-03-17 工作记录
+
+### 时间
+2026 年 3 月 17 日
+
+### 本次工作范围与成果
+
+#### 1. Linux 兼容性检测
+- 全面扫描 `src/`、`tests/`、`examples/` 中所有 `.py` 文件，检查路径处理、编码、行尾符、进程调用等跨平台问题
+- **结论**：源代码（`src/`）Linux 兼容性良好 — 全面使用 `pathlib.Path`、`./` 相对路径、`encoding="utf-8"`，无硬编码 Windows 路径
+- 发现 `package.py` L148 中 `shell=True` + f-string 路径拼接安全风险（仅 Linux 执行路径）
+
+#### 2. 架构图 vs 代码差距分析
+对照 `codeplan/Full_Project_Spec.md` 中的架构图与实际代码，识别出 9 项差距：
+- **知识回写闭环缺失**：架构图标注"成功模式向量化存储"，但 `harden()` 成功后不回写 Vector DB
+- **Ranker 未集成**：`ranker.py` 实现完好但从未在检索管线中使用
+- **KnowledgeStore / ChromaClient 缺少 CRUD**：缺 `get()`、`put()`、`delete()` 方法
+- **model_selector.yaml 未被引用**：`LLMClient` 硬编码 `deepseek-chat`
+- **VectorStorePersistence 未集成**：`persistence.py` 孤立未被任何模块使用
+- **HardeningPlan/HardeningStep 定义缺失**：导入不存在的 `agent.hardening_agent` 模块
+- 多项小修复（`EmbeddingModel.dimension` 无缓存、`ChromaClient.clear()` 可能报错等）
+
+#### 3. 导入风格审计
+- 扫描 `src/` 内所有 40+ 处内部导入语句
+- 发现 `src/vector_db/__init__.py`（3 处）和 `src/main_agent.py` 懒加载（3 处）使用绝对导入，与其余相对导入不一致
+
+#### 4. 遗留兼容代码扫描
+- `src/executor/ansible_runner.py`：`from agent.hardening_agent import ...` 导致 4 个函数成为死代码
+- `src/feedback/self_heal.py`：向后兼容路径（无 `execute_fn` 回调时仅靠关键词判断）
+- `tests/test_stage2.py`：引用完全不存在的 `agent.generator` / `agent.rag_querier` 旧模块
+
+#### 5. 输出文件
+- 生成 `suggestion.md`：包含全部 9 项修改建议、代码示例、优先级排序及可直接发送给 Claude Code 的完整提示词
+
+### 遗留问题
+
+| # | 问题 | 严重程度 | 状态 |
+|---|------|----------|------|
+| 1 | 13 个文件存在未解决的 Git 合并冲突 | 🔴 严重 | 待修复 |
+| 2 | 知识回写闭环未实现（架构核心特性） | 🔴 高 | 待实现 |
+| 3 | Ranker 未集成进检索管线 | 🟠 高 | 待实现 |
+| 4 | KnowledgeStore / ChromaClient 缺 CRUD | 🟠 中 | 待实现 |
+| 5 | model_selector.yaml 未被 LLMClient 加载 | 🟡 中 | 待实现 |
+| 6 | VectorStorePersistence 孤立未集成 | 🟡 中 | 待实现 |
+| 7 | HardeningPlan/HardeningStep 模块不存在 | 🟡 低 | 待定义 |
+| 8 | `src/vector_db/__init__.py` 导入风格不一致 | 🟡 低 | 待统一 |
+| 9 | `tests/test_stage2.py` 引用旧架构模块 | 🟠 中 | 待重写或删除 |
+| 10 | `package.py` shell=True 安全风险 | 🟡 低 | 待修复 |
+| 11 | 性能基准测试 `tests/benchmark.py` 未创建 | 🟡 低 | 待创建 |
+
+> 详细修改建议及 Claude Code 提示词见 `suggestion.md`
+
+---
+
+**最后更新**: 2026-03-17
 **架构版本**: 2.0 (重构后)
-**当前状态**: 所有核心模块已完成，包含中文注释和单元测试
+**当前状态**: 核心模块已完成，架构差距已分析，修改建议已输出至 suggestion.md

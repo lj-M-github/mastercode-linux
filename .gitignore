@@ -74,5 +74,3 @@ configs/config.yaml
 
 # 如果你还有其他类似的 local 文件
 *.local.json
-
-suggestion.md
