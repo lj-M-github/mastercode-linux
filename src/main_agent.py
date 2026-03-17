@@ -1,6 +1,7 @@
 """Main Agent module - Central orchestration agent for security hardening."""
 
 import re
+from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
@@ -203,9 +204,9 @@ class SecurityHardeningAgent:
         Returns:
             入库报告
         """
-        from preprocessing.pdf_parser import PDFParser
-        from preprocessing.text_cleaner import TextCleaner
-        from preprocessing.chunker import Chunker
+        from .preprocessing.pdf_parser import PDFParser
+        from .preprocessing.text_cleaner import TextCleaner
+        from .preprocessing.chunker import Chunker
 
         cleaner = TextCleaner()
         chunker = Chunker()
@@ -485,7 +486,22 @@ class SecurityHardeningAgent:
                     if heal_result.execution_result is not None:
                         exec_result = heal_result.execution_result
 
-            # 5. 记录结果
+            # 5. 知识回写闭环：执行成功后将 playbook 回写到知识库
+            if exec_result.success:
+                self.knowledge_store.add([{
+                    "content": playbook,
+                    "metadata": {
+                        "rule_id": rule_id,
+                        "type": "verified_playbook",
+                        "source": "self_execution",
+                        "target_host": target_host,
+                        "timestamp": datetime.now().isoformat(),
+                        "section_title": section_title,
+                        "cloud_provider": cloud_provider,
+                    }
+                }])
+
+            # 6. 记录结果
             self.report_generator.add_result(
                 rule_id=rule_id,
                 status=(

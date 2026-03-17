@@ -131,6 +131,12 @@ class SelfHealer:
                 continue
 
             # 向后兼容路径（无回调）
+            import warnings
+            warnings.warn(
+                "heal() 未提供 execute_fn，将使用静态分析判断修复结果，建议传入 execute_fn 以获得可靠的自愈效果",
+                DeprecationWarning,
+                stacklevel=2
+            )
             if self._is_fixed(analysis):
                 return HealingResult(
                     success=True,

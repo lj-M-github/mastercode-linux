@@ -5,7 +5,9 @@ from pathlib import Path
 
 from ..vector_db.chroma_client import ChromaClient
 from ..vector_db.embedding import EmbeddingModel
+from ..vector_db.persistence import VectorStorePersistence
 from .retriever import Retriever, RetrievalResult
+from .ranker import Ranker
 
 
 class KnowledgeStore:
@@ -48,6 +50,8 @@ class KnowledgeStore:
         self.embedding_model = EmbeddingModel(model_name)
         self.chroma_client = ChromaClient(str(db_path), collection_name)
         self.retriever = Retriever(self.chroma_client, self.embedding_model)
+        self.ranker = Ranker()
+        self.persistence = VectorStorePersistence(str(db_path))
 
     def add(
         self,
@@ -87,7 +91,13 @@ class KnowledgeStore:
             metadatas=metadatas
         )
 
-        return len(items)
+        count = len(items)
+        # 保存状态
+        self.persistence.save_state({
+            "last_add_count": count,
+            "total": self.get_stats().get("total_items", 0)
+        })
+        return count
 
     def search(
         self,
@@ -105,7 +115,20 @@ class KnowledgeStore:
         Returns:
             检索结果列表
         """
-        return self.retriever.search(query, n_results, filter_dict)
+        # 1. 初始检索（多取一些候选）
+        raw_results = self.retriever.search(query, n_results=n_results * 2, filter_dict=filter_dict)
+        # 2. 重排序
+        ranked = self.ranker.rank(raw_results, query=query, top_k=n_results)
+        # 转换回 RetrievalResult 格式
+        return [
+            RetrievalResult(
+                content=r.content,
+                metadata=r.metadata,
+                score=r.score,
+                rank=r.rank
+            )
+            for r in ranked
+        ]
 
     def get_stats(self) -> Dict[str, Any]:
         """获取统计信息。
@@ -123,3 +146,55 @@ class KnowledgeStore:
     def clear(self) -> None:
         """清空知识库。"""
         self.chroma_client.clear()
+
+    def get(self, item_id: str) -> Optional[Dict[str, Any]]:
+        """按 ID 获取知识项。
+
+        Args:
+            item_id: 知识项 ID
+
+        Returns:
+            知识项字典，包含 id、content 和 metadata，如果不存在则返回 None
+        """
+        result = self.chroma_client.get(ids=[item_id])
+        if result and result.get("documents"):
+            docs = result["documents"]
+            metas = result.get("metadatas", [{}])
+            if docs and docs[0]:
+                return {
+                    "id": item_id,
+                    "content": docs[0],
+                    "metadata": metas[0] if metas else {}
+                }
+        return None
+
+    def put(
+        self,
+        item_id: str,
+        content: str,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """更新或插入知识项。
+
+        Args:
+            item_id: 知识项 ID
+            content: 知识内容
+            metadata: 元数据
+        """
+        embedding = self.embedding_model.encode_single(content)
+        self.chroma_client.update(
+            ids=[item_id],
+            embeddings=[embedding],
+            documents=[content],
+            metadatas=[metadata or {}]
+        )
+
+    def delete(self, item_id: str) -> None:
+        """删除知识项。
+
+        Args:
+            item_id: 知识项 ID
+        """
+        self.chroma_client.delete(ids=[item_id])
+        # 保存状态
+        self.persistence.save_state({"last_delete": item_id})

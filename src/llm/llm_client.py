@@ -1,6 +1,7 @@
 """LLM Client module - Interface to LLM providers."""
 
 import os
+import yaml
 from typing import List, Dict, Any, Optional, Union
 
 try:
@@ -37,7 +38,8 @@ class LLMClient:
         model: str = DEFAULT_MODEL,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        temperature: float = DEFAULT_TEMPERATURE
+        temperature: float = DEFAULT_TEMPERATURE,
+        model_config_path: Optional[str] = None
     ):
         """初始化 LLM 客户端。
 
@@ -46,13 +48,36 @@ class LLMClient:
             api_key: API 密钥（默认从环境变量读取）
             base_url: API 基础地址
             temperature: 温度参数
+            model_config_path: 模型配置文件路径（可选）
         """
         self.model = model
         self.temperature = temperature
         self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
         self.base_url = base_url or self.DEFAULT_BASE_URL
 
+        # 加载模型配置
+        self.model_config = self._load_model_config(model_config_path)
+
         self._init_client()
+
+    def _load_model_config(self, path: Optional[str]) -> Dict[str, Any]:
+        """加载模型配置文件。
+
+        Args:
+            path: 配置文件路径
+
+        Returns:
+            配置字典，如果文件不存在则返回空字典
+        """
+        if not path:
+            return {}
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f) or {}
+        except FileNotFoundError:
+            return {}
+        except yaml.YAMLError:
+            return {}
 
     def _init_client(self) -> None:
         """初始化客户端。"""
@@ -69,7 +94,8 @@ class LLMClient:
         prompt: str,
         system_prompt: Optional[str] = None,
         max_tokens: Optional[int] = None,
-        temperature: Optional[float] = None
+        temperature: Optional[float] = None,
+        task_type: Optional[str] = None
     ) -> "LLMResponse":
         """生成响应。
 
@@ -78,10 +104,14 @@ class LLMClient:
             system_prompt: 系统提示词
             max_tokens: 最大 token 数
             temperature: 温度参数
+            task_type: 任务类型（如 code_generation、error_analysis）
 
         Returns:
             LLMResponse 对象
         """
+        # 根据任务类型动态选择模型
+        model_to_use = self._select_model_for_task(task_type)
+
         if self.client is None:
             return self._mock_response(prompt)
 
@@ -94,7 +124,7 @@ class LLMClient:
         messages.append({"role": "user", "content": prompt})
 
         response = self.client.chat.completions.create(
-            model=self.model,
+            model=model_to_use,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens
@@ -102,13 +132,30 @@ class LLMClient:
 
         return LLMResponse(
             content=response.choices[0].message.content,
-            model=self.model,
+            model=model_to_use,
             usage={
                 "prompt_tokens": response.usage.prompt_tokens,
                 "completion_tokens": response.usage.completion_tokens,
                 "total_tokens": response.usage.total_tokens
             }
         )
+
+    def _select_model_for_task(self, task_type: Optional[str]) -> str:
+        """根据任务类型选择模型。
+
+        Args:
+            task_type: 任务类型
+
+        Returns:
+            模型名称
+        """
+        if not task_type or not self.model_config:
+            return self.model
+
+        tasks_config = self.model_config.get("tasks", {})
+        if task_type in tasks_config:
+            return tasks_config[task_type].get("model", self.model)
+        return self.model
 
     def _mock_response(self, prompt: str) -> "LLMResponse":
         """生成模拟响应（无 API Key 时）。

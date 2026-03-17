@@ -28,14 +28,11 @@ INCLUDE_PATTERNS = [
     "README.md",
     "DEPLOY_UBUNTU.md",
     "TEST_REPORT.md",
-    "pytest.ini",
 ]
 
 # 需要排除的目录
 EXCLUDE_DIRS = [
     "__pycache__",
-    ".pytest_cache",
-    ".mypy_cache",
     ".git",
     ".vscode",
     ".idea",
@@ -189,7 +186,9 @@ def main():
 
 5. 运行测试:
    source venv/bin/activate
-   python -m pytest tests/ -v
+   python tests/run_tests.py
+   # 或者使用 unittest:
+   # python -m unittest discover tests/ -v
 """)
 
 if __name__ == "__main__":

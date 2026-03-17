@@ -13,12 +13,38 @@ from typing import List, Dict, Any, Optional, Union
 from pathlib import Path
 from datetime import datetime
 
-# 兼容旧结构的导入
-try:
-    from agent.hardening_agent import HardeningPlan, HardeningStep
-except ImportError:
-    HardeningPlan = None
-    HardeningStep = None
+@dataclass
+class HardeningStep:
+    """单个加固步骤。
+
+    Attributes:
+        name: 步骤名称
+        module: Ansible 模块名称
+        params: 模块参数
+        when: 执行条件
+    """
+    name: str
+    module: str
+    params: Dict[str, Any] = field(default_factory=dict)
+    when: str = ""
+
+
+@dataclass
+class HardeningPlan:
+    """加固计划，包含多个步骤。
+
+    Attributes:
+        plan_id: 计划 ID
+        rule_id: 规则 ID
+        description: 计划描述
+        steps: 步骤列表
+        target_host: 目标主机
+    """
+    plan_id: str
+    rule_id: str
+    description: str
+    steps: List[HardeningStep] = field(default_factory=list)
+    target_host: str = "localhost"
 
 
 @dataclass
@@ -266,7 +292,7 @@ class AnsibleRunner:
 
     def run_step(
         self,
-        step: "HardeningStep",
+        step: HardeningStep,
         target_host: str = "localhost"
     ) -> ExecutionResult:
         """执行单个加固步骤。
@@ -329,9 +355,9 @@ class AnsibleRunner:
 - hosts: {target_host}
   gather_facts: no
   tasks:
-    - name: {step.action}
-      {step.ansible_module}:
-        {self._format_params(step.parameters)}
+    - name: {step.name}
+      {step.module}:
+        {self._format_params(step.params)}
 """
 
     def _format_params(self, params: Dict[str, Any]) -> str:
@@ -402,7 +428,7 @@ def run_hardening(
     for plan in plans:
         for step in plan.steps:
             result = runner.run_step(step, target_host)
-            result.plan_id = f"{plan.rule_id}_步骤{step.step_id}"
+            result.plan_id = f"{plan.rule_id}_步骤{step.name}"
             results.append(result)
 
     return results

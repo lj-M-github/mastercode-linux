@@ -12,18 +12,8 @@ langchain-text-splitters>=0.0.1
 openai>=1.0.0
 pyyaml>=6.0
 
-# Data validation
-pydantic>=2.0.0
-
-# Ansible execution
-ansible-core>=2.15.0
-ansible-runner>=2.3.0
-
 # Utilities
-python-dotenv>=1.0.0
 typing-extensions>=4.0.0
-loguru>=0.7.0
-tqdm>=4.65.0
 
 # Testing
 pytest>=7.0.0

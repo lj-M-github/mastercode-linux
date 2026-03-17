@@ -1,55 +1,39 @@
-"""运行所有单元测试."""
+"""运行所有单元测试 - 使用 pytest."""
 
-import unittest
+import subprocess
 import sys
-from pathlib import Path
-
-# 添加 src 到路径
-src_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(src_path))
 
 
-def run_all_tests():
-    """运行所有单元测试。"""
-    # 发现测试
-    loader = unittest.TestLoader()
-    start_dir = Path(__file__).parent
+def run_all_tests(verbosity: int = 2):
+    """运行所有单元测试。
 
-    # 加载所有 test_*.py 文件
-    suite = loader.discover(
-        start_dir=str(start_dir),
-        pattern="test_*.py"
-    )
+    Args:
+        verbosity: 详细程度 (1=简要，2=详细)
 
-    # 运行测试
-    runner = unittest.TextTestRunner(
-        verbosity=2,
-        descriptions=True
-    )
-    result = runner.run(suite)
+    Returns:
+        bool: 测试是否全部通过
+    """
+    # 使用 pytest 运行测试
+    cmd = [sys.executable, "-m", "pytest", "tests/", f"-{'v' * verbosity}"]
+
+    print("=" * 60)
+    print("运行测试套件...")
+    print("=" * 60)
+
+    result = subprocess.run(cmd)
 
     # 打印总结
     print("\n" + "=" * 60)
-    print("测试总结")
+    if result.returncode == 0:
+        print("✓ 所有测试通过!")
+    else:
+        print("✗ 部分测试失败")
     print("=" * 60)
-    print(f"总测试数：{result.testsRun}")
-    print(f"成功：{result.testsRun - len(result.failures) - len(result.errors)}")
-    print(f"失败：{len(result.failures)}")
-    print(f"错误：{len(result.errors)}")
 
-    if result.failures:
-        print("\n失败测试:")
-        for test, traceback in result.failures:
-            print(f"  - {test}")
-
-    if result.errors:
-        print("\n错误测试:")
-        for test, traceback in result.errors:
-            print(f"  - {test}")
-
-    return result.wasSuccessful()
+    return result.returncode == 0
 
 
 if __name__ == "__main__":
-    success = run_all_tests()
+    verbosity = 2 if "-v" in sys.argv else 1
+    success = run_all_tests(verbosity)
     sys.exit(0 if success else 1)
