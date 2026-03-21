@@ -6,6 +6,7 @@ from datetime import datetime
 
 from ..llm.llm_client import LLMClient
 from ..llm.prompt_templates import PromptTemplate, SELF_HEALING_TEMPLATE
+from ..utils.yaml_utils import extract_yaml
 from .error_analyzer import ErrorAnalyzer, ErrorAnalysis
 
 
@@ -181,45 +182,11 @@ class SelfHealer:
             execution_log=execution_log
         )
 
-        response = self.llm_client.generate(prompt)
+        response = self.llm_client.generate(prompt, task_type="error_analysis")
 
         # 提取 YAML 代码块
-        rewritten = self._extract_yaml(response.content)
+        rewritten = extract_yaml(response.content)
         return rewritten or playbook
-
-    def _extract_yaml(self, text: str) -> str:
-        """从文本中提取 YAML 内容。
-
-        Args:
-            text: 文本
-
-        Returns:
-            YAML 内容
-        """
-        import re
-        yaml_match = re.search(r'```(?:yaml)?\s*(.*?)```', text, re.DOTALL)
-        if yaml_match:
-            return yaml_match.group(1).strip()
-
-        stripped = text.strip()
-        if self._looks_like_yaml(stripped):
-            return stripped
-
-        for marker in ("---", "- name:", "- hosts:"):
-            index = stripped.find(marker)
-            if index != -1:
-                candidate = stripped[index:].strip()
-                if self._looks_like_yaml(candidate):
-                    return candidate
-
-        return ""
-
-    def _looks_like_yaml(self, text: str) -> bool:
-        """判断文本是否看起来像可执行的 playbook/yaml。"""
-        if not text:
-            return False
-        yaml_indicators = ["hosts:", "tasks:", "- name:", "gather_facts:", "become:"]
-        return any(indicator in text for indicator in yaml_indicators)
 
     def _is_fixed(self, analysis: ErrorAnalysis) -> bool:
         """判断是否已修复。
@@ -239,17 +206,14 @@ class SelfHealer:
     def can_retry(self, error: str) -> bool:
         """判断是否可以重试。
 
-        Args:
-            error: 错误消息
-
-        Returns:
-            是否可以重试
+        权限错误可以通过 become: yes 修复，属于可重试。
+        只有真正的认证失败才是不可重试的。
         """
-        # 不可重试的错误
+        # 只有真正的认证失败不可重试
         non_retryable = [
             "invalid credentials",
             "authentication failed",
-            "permission denied"
+            # 注意：permission denied 可通过 become: yes 修复，属于可重试
         ]
 
         error_lower = error.lower()

@@ -65,6 +65,42 @@ class SSHClient:
         self.config = config
         self._connected = False
 
+    def _build_ssh_command(
+        self,
+        command: str = "",
+        extra_options: Optional[list] = None
+    ) -> list:
+        """构建 SSH 命令。
+
+        Args:
+            command: 要执行的命令，为空时仅建立连接测试
+            extra_options: 额外的 SSH 选项列表
+
+        Returns:
+            SSH 命令列表
+        """
+        cmd = ["ssh"]
+
+        # 添加额外选项（如连接测试选项）
+        if extra_options:
+            cmd.extend(extra_options)
+
+        # 添加密钥文件
+        if self.config.key_file:
+            cmd.extend(["-i", self.config.key_file])
+
+        # 添加主机和目标
+        cmd.extend([
+            "-p", str(self.config.port),
+            f"{self.config.username}@{self.config.host}"
+        ])
+
+        # 添加要执行的命令
+        if command:
+            cmd.append(command)
+
+        return cmd
+
     def connect(self) -> bool:
         """建立 SSH 连接。
 
@@ -73,16 +109,10 @@ class SSHClient:
         """
         try:
             # 使用 ssh 命令测试连接
-            cmd = ["ssh", "-o", "BatchMode=yes", "-o", f"ConnectTimeout={self.config.timeout}"]
-
-            if self.config.key_file:
-                cmd.extend(["-i", self.config.key_file])
-
-            cmd.extend([
-                "-p", str(self.config.port),
-                f"{self.config.username}@{self.config.host}",
-                "echo 'Connection successful'"
-            ])
+            cmd = self._build_ssh_command(
+                command="echo 'Connection successful'",
+                extra_options=["-o", "BatchMode=yes", "-o", f"ConnectTimeout={self.config.timeout}"]
+            )
 
             result = subprocess.run(
                 cmd,
@@ -123,16 +153,7 @@ class SSHClient:
         timeout = timeout or self.config.timeout
 
         try:
-            cmd = ["ssh"]
-
-            if self.config.key_file:
-                cmd.extend(["-i", self.config.key_file])
-
-            cmd.extend([
-                "-p", str(self.config.port),
-                f"{self.config.username}@{self.config.host}",
-                command
-            ])
+            cmd = self._build_ssh_command(command=command)
 
             result = subprocess.run(
                 cmd,

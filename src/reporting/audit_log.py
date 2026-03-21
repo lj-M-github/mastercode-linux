@@ -1,8 +1,12 @@
 import json
 import logging
+import re
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional, List
+
+# 预编译正则表达式，用于从日志行中提取 JSON
+_JSON_PATTERN = re.compile(r'\{.*\}')
 
 
 class AuditLog:
@@ -163,42 +167,42 @@ class AuditLog:
         """
         history = []
 
-        if not self.log_file.exists():
-            return history
-
         # 先刷新并关闭日志处理器，确保内容写入文件
         for handler in self.logger.handlers:
             handler.flush()
 
-        with open(self.log_file, "r", encoding="utf-8") as f:
-            for line in f:
-                try:
-                    # 解析日志条目 - 支持多种格式
-                    json_part = None
-                    if " - INFO - " in line:
-                        json_part = line.split(" - INFO - ", 1)[1]
-                    elif "INFO" in line:
-                        # 尝试直接查找 JSON 部分
-                        import re
-                        match = re.search(r'\{.*\}', line)
-                        if match:
-                            json_part = match.group()
+        try:
+            with open(self.log_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    try:
+                        # 解析日志条目 - 支持多种格式
+                        json_part = None
+                        if " - INFO - " in line:
+                            json_part = line.split(" - INFO - ", 1)[1]
+                        elif "INFO" in line:
+                            # 使用预编译正则提取 JSON
+                            match = _JSON_PATTERN.search(line)
+                            if match:
+                                json_part = match.group()
 
-                    if json_part:
-                        entry = json.loads(json_part)
+                        if json_part:
+                            entry = json.loads(json_part)
 
-                        # 过滤
-                        if rule_id and rule_id not in str(entry.get("details", {})):
-                            continue
-                        if action_type and entry.get("action_type") != action_type:
-                            continue
+                            # 过滤
+                            if rule_id and rule_id not in str(entry.get("details", {})):
+                                continue
+                            if action_type and entry.get("action_type") != action_type:
+                                continue
 
-                        history.append(entry)
+                            history.append(entry)
 
-                        if len(history) >= limit:
-                            break
-                except (json.JSONDecodeError, IndexError, ValueError):
-                    continue
+                            if len(history) >= limit:
+                                break
+                    except (json.JSONDecodeError, IndexError, ValueError):
+                        continue
+        except FileNotFoundError:
+            # 日志文件不存在，返回空列表
+            pass
 
         return history
 

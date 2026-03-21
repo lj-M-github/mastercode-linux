@@ -49,7 +49,7 @@ def example_ingest_knowledge(agent):
     print("知识入库示例")
     print("=" * 60)
 
-    doc_dir = "./doc"
+    doc_dir = "./data/policies/cis"
     if not Path(doc_dir).exists():
         print(f"⚠ 文档目录不存在：{doc_dir}")
         print("  跳过知识入库步骤")
@@ -255,7 +255,7 @@ def example_ingest_knowledge(agent):
     print("知识入库示例")
     print("=" * 60)
 
-    doc_dir = "./doc"
+    doc_dir = "./data/policies/cis"
     if not Path(doc_dir).exists():
         print(f"⚠ 文档目录不存在：{doc_dir}")
         print("  跳过知识入库步骤")

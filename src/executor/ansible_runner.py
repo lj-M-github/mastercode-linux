@@ -7,11 +7,15 @@
 import subprocess
 import json
 import tempfile
-from dataclasses import dataclass, field
 import re
+from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Union
 from pathlib import Path
 from datetime import datetime
+
+# 预编译正则表达式，避免重复编译
+_RECAP_PATTERN = re.compile(r"(ok|changed|failed|unreachable)=(\d+)")
+
 
 @dataclass
 class HardeningStep:
@@ -112,6 +116,29 @@ class AnsibleRunner:
         self.verbose = verbose
         self._last_output: List[str] = []
 
+    def _error_result(
+        self,
+        plan_id: str,
+        error_msg: str
+    ) -> ExecutionResult:
+        """创建错误执行结果。
+
+        Args:
+            plan_id: 计划 ID
+            error_msg: 错误消息
+
+        Returns:
+            ExecutionResult 对象，success=False
+        """
+        return ExecutionResult(
+            plan_id=plan_id,
+            success=False,
+            steps_executed=0,
+            steps_failed=0,
+            output="",
+            error=error_msg
+        )
+
     def run_playbook(
         self,
         playbook_name: str,
@@ -144,14 +171,7 @@ class AnsibleRunner:
 
         # 检查剧本文件是否存在
         if not playbook_path.exists():
-            return ExecutionResult(
-                plan_id=playbook_name,
-                success=False,
-                steps_executed=0,
-                steps_failed=0,
-                output="",
-                error=f"剧本不存在：{playbook_path}"
-            )
+            return self._error_result(plan_id=playbook_name, error_msg=f"剧本不存在：{playbook_path}")
 
         # 构建命令
         cmd = ["ansible-playbook", str(playbook_path)]
@@ -188,23 +208,9 @@ class AnsibleRunner:
                 duration_seconds=0.0
             )
         except subprocess.TimeoutExpired:
-            return ExecutionResult(
-                plan_id=playbook_name,
-                success=False,
-                steps_executed=0,
-                steps_failed=0,
-                output="",
-                error="剧本执行超时（超过 300 秒）"
-            )
+            return self._error_result(plan_id=playbook_name, error_msg="剧本执行超时（超过 300 秒）")
         except FileNotFoundError:
-            return ExecutionResult(
-                plan_id=playbook_name,
-                success=False,
-                steps_executed=0,
-                steps_failed=0,
-                output="",
-                error="未找到 ansible-playbook 命令，请确保已安装 Ansible"
-            )
+            return self._error_result(plan_id=playbook_name, error_msg="未找到 ansible-playbook 命令，请确保已安装 Ansible")
 
     def _count_successful_steps(self, output: str) -> int:
         """从 Ansible 输出中统计成功步骤数。
@@ -250,7 +256,7 @@ class AnsibleRunner:
             "unreachable": 0,
         }
 
-        for key, value in re.findall(r"(ok|changed|failed|unreachable)=(\d+)", text):
+        for key, value in _RECAP_PATTERN.findall(text):
             totals[key] += int(value)
 
         return totals

@@ -1,0 +1,114 @@
+# Kernel Parameters Security Controls
+# CIS Benchmark: Kernel Parameter Hardening
+
+policy: "CIS Benchmark Level 1"
+product: "Linux Server"
+version: "1.0.0"
+
+controls:
+  - id: "3.1.1"
+    title: "Disable IP Forwarding"
+    notes: |
+      Set net.ipv4.ip_forward = 0 in /etc/sysctl.conf or /etc/sysctl.d/99-security.conf
+      Command: sysctl -w net.ipv4.ip_forward=0
+      Verify: sysctl net.ipv4.ip_forward
+    rules:
+      - "net.ipv4.ip_forward = 0"
+
+  - id: "3.1.2"
+    title: "Disable Send Packet Redirects"
+    notes: |
+      Set net.ipv4.conf.all.send_redirects = 0 and net.ipv4.conf.default.send_redirects = 0
+      Command: sysctl -w net.ipv4.conf.all.send_redirects=0
+    rules:
+      - "net.ipv4.conf.all.send_redirects = 0"
+      - "net.ipv4.conf.default.send_redirects = 0"
+
+  - id: "3.2.1"
+    title: "Disable Source Routed Packet Acceptance"
+    notes: |
+      Set net.ipv4.conf.all.accept_source_route = 0
+      Set net.ipv4.conf.default.accept_source_route = 0
+      Command: sysctl -w net.ipv4.conf.all.accept_source_route=0
+    rules:
+      - "net.ipv4.conf.all.accept_source_route = 0"
+      - "net.ipv4.conf.default.accept_source_route = 0"
+
+  - id: "3.2.2"
+    title: "Disable ICMP Redirect Acceptance"
+    notes: |
+      Set net.ipv4.conf.all.accept_redirects = 0
+      Set net.ipv4.conf.default.accept_redirects = 0
+      Command: sysctl -w net.ipv4.conf.all.accept_redirects=0
+    rules:
+      - "net.ipv4.conf.all.accept_redirects = 0"
+      - "net.ipv4.conf.default.accept_redirects = 0"
+
+  - id: "3.2.3"
+    title: "Disable Secure ICMP Redirect Acceptance"
+    notes: |
+      Set net.ipv4.conf.all.secure_redirects = 0
+      Set net.ipv4.conf.default.secure_redirects = 0
+      Command: sysctl -w net.ipv4.conf.all.secure_redirects=0
+    rules:
+      - "net.ipv4.conf.all.secure_redirects = 0"
+
+  - id: "3.2.4"
+    title: "Log Suspicious Packets"
+    notes: |
+      Set net.ipv4.conf.all.log_martians = 1
+      Set net.ipv4.conf.default.log_martians = 1
+      Command: sysctl -w net.ipv4.conf.all.log_martians=1
+    rules:
+      - "net.ipv4.conf.all.log_martians = 1"
+
+  - id: "3.2.5"
+    title: "Enable Ignore Broadcast Requests"
+    notes: |
+      Set net.ipv4.icmp_echo_ignore_broadcasts = 1
+      Command: sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1
+    rules:
+      - "net.ipv4.icmp_echo_ignore_broadcasts = 1"
+
+  - id: "3.2.6"
+    title: "Enable Bad Error Message Protection"
+    notes: |
+      Set net.ipv4.icmp_ignore_bogus_error_responses = 1
+      Command: sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1
+    rules:
+      - "net.ipv4.icmp_ignore_bogus_error_responses = 1"
+
+  - id: "3.2.7"
+    title: "Enable RFC-recommended Source Route Validation"
+    notes: |
+      Set net.ipv4.conf.all.rp_filter = 1
+      Set net.ipv4.conf.default.rp_filter = 1
+      Command: sysctl -w net.ipv4.conf.all.rp_filter=1
+    rules:
+      - "net.ipv4.conf.all.rp_filter = 1"
+
+  - id: "3.2.8"
+    title: "Enable TCP SYN Cookies"
+    notes: |
+      Set net.ipv4.tcp_syncookies = 1
+      Command: sysctl -w net.ipv4.tcp_syncookies=1
+    rules:
+      - "net.ipv4.tcp_syncookies = 1"
+
+  - id: "3.3.1"
+    title: "Disable IPv6 Router Advertisements"
+    notes: |
+      Set net.ipv6.conf.all.accept_ra = 0
+      Set net.ipv6.conf.default.accept_ra = 0
+      Command: sysctl -w net.ipv6.conf.all.accept_ra=0
+    rules:
+      - "net.ipv6.conf.all.accept_ra = 0"
+
+  - id: "3.3.2"
+    title: "Disable IPv6 Redirect Acceptance"
+    notes: |
+      Set net.ipv6.conf.all.accept_redirects = 0
+      Set net.ipv6.conf.default.accept_redirects = 0
+      Command: sysctl -w net.ipv6.conf.all.accept_redirects=0
+    rules:
+      - "net.ipv6.conf.all.accept_redirects = 0"

@@ -187,19 +187,19 @@ class ReportGenerator:
         return str(filepath)
 
     def _get_summary(self) -> Dict[str, Any]:
-        """获取统计摘要。"""
-        total = len(self.entries)
-        success = sum(1 for e in self.entries if e.status == "success")
-        failed = sum(1 for e in self.entries if e.status == "failed")
-        skipped = sum(1 for e in self.entries if e.status == "skipped")
+        """获取统计摘要（单次遍历）。"""
+        summary = {"total": 0, "success": 0, "failed": 0, "skipped": 0}
 
-        return {
-            "total": total,
-            "success": success,
-            "failed": failed,
-            "skipped": skipped,
-            "success_rate": success / total if total > 0 else 0
-        }
+        for entry in self.entries:
+            summary["total"] += 1
+            status = entry.status
+            if status in summary:
+                summary[status] += 1
+
+        total = summary["total"]
+        summary["success_rate"] = summary["success"] / total if total > 0 else 0
+
+        return summary
 
     def _format_summary_markdown(self) -> str:
         """格式化 Markdown 摘要。"""

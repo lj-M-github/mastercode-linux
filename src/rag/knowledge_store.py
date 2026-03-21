@@ -115,9 +115,10 @@ class KnowledgeStore:
         Returns:
             检索结果列表
         """
-        # 1. 初始检索（多取一些候选）
-        raw_results = self.retriever.search(query, n_results=n_results * 2, filter_dict=filter_dict)
-        # 2. 重排序
+        # 1. 初始检索（自适应候选数，兼顾召回与性能）
+        candidate_n = min(max(n_results * 3, n_results + 5), 50)
+        raw_results = self.retriever.search(query, n_results=candidate_n, filter_dict=filter_dict)
+        # 2. 重排序（使用关键词匹配 boost）
         ranked = self.ranker.rank(raw_results, query=query, top_k=n_results)
         # 转换回 RetrievalResult 格式
         return [

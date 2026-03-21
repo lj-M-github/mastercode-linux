@@ -5,6 +5,7 @@ import pytest
 
 from src.main_agent import SecurityHardeningAgent
 from src.feedback.self_heal import HealingResult
+from src.utils.yaml_utils import extract_yaml
 
 
 class TestSecurityHardeningAgent:
@@ -86,7 +87,7 @@ class TestSecurityHardeningAgent:
         assert "localhost" in playbook
 
     def test_extract_yaml_accepts_raw_yaml(self, agent):
-        """测试主代理可直接接受未包裹代码块的原始 YAML。"""
+        """测试可直接接受未包裹代码块的原始 YAML。"""
         raw_yaml = """---
 - name: Test play
   hosts: localhost
@@ -94,7 +95,7 @@ class TestSecurityHardeningAgent:
     - name: Ping
       ping:
 """
-        extracted = agent._extract_yaml(raw_yaml)
+        extracted = extract_yaml(raw_yaml)
         assert extracted == raw_yaml.strip()
 
     def test_generate_playbook_uses_raw_yaml_response(self, agent):

@@ -35,7 +35,7 @@ from src.main_agent import SecurityHardeningAgent
 agent = SecurityHardeningAgent()
 
 # Ingest PDF documents
-report = agent.ingest_knowledge("./doc")
+report = agent.ingest_knowledge("./data/policies/cis")
 print(f"Ingested {report['items_added']} items")
 ```
 
@@ -120,7 +120,7 @@ print(f"Report saved to: {report_path}")
 
 ```bash
 # Run knowledge ingestion
-python -c "from src.main_agent import SecurityHardeningAgent; a = SecurityHardeningAgent(); a.ingest_knowledge('./doc')"
+python -c "from src.main_agent import SecurityHardeningAgent; a = SecurityHardeningAgent(); a.ingest_knowledge('./data/policies/cis')"
 
 # Search knowledge
 python -c "from src.main_agent import SecurityHardeningAgent; a = SecurityHardeningAgent(); print(a.search_knowledge('SSH'))"

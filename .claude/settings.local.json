@@ -11,7 +11,10 @@
       "Bash(source:*)",
       "Bash(grep:*)",
       "Bash(git checkout:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(pip list:*)",
+      "Bash(pytest tests/ -v --tb=short)",
+      "Bash(unset ALL_PROXY all_proxy)"
     ]
   }
 }

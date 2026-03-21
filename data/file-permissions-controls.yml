@@ -1,0 +1,164 @@
+# File Permissions Security Controls
+# CIS Benchmark: File System Security Hardening
+
+policy: "CIS Benchmark Level 1"
+product: "Linux Server"
+version: "1.0.0"
+
+controls:
+  - id: "1.1.1"
+    title: "Ensure /tmp is a separate partition"
+    notes: |
+      Create separate partition for /tmp with nodev, nosuid, noexec options.
+      Command: mount -o remount,nodev,nosuid,noexec /tmp
+      fstab entry: tmpfs /tmp tmpfs defaults,nodev,nosuid,noexec 0 0
+    rules:
+      - "mount /tmp with nodev,nosuid,noexec"
+
+  - id: "1.1.2"
+    title: "Ensure nodev option set on /tmp partition"
+    notes: |
+      Add nodev option to prevent device files in /tmp.
+      Command: mount -o remount,nodev /tmp
+      Edit /etc/fstab: nodev option
+      chmod 1777 /tmp (set sticky bit)
+    rules:
+      - "nodev on /tmp"
+
+  - id: "1.1.3"
+    title: "Ensure nosuid option set on /tmp partition"
+    notes: |
+      Add nosuid option to prevent SUID executables.
+      Command: mount -o remount,nosuid /tmp
+    rules:
+      - "nosuid on /tmp"
+
+  - id: "1.1.4"
+    title: "Ensure noexec option set on /tmp partition"
+    notes: |
+      Add noexec option to prevent execution.
+      Command: mount -o remount,noexec /tmp
+    rules:
+      - "noexec on /tmp"
+
+  - id: "1.5.1"
+    title: "Ensure permissions on /etc/passwd are configured"
+    notes: |
+      Set permissions to 0644 on /etc/passwd.
+      Command: chmod 644 /etc/passwd
+      Owner: root:root
+      Verify: ls -l /etc/passwd (should be -rw-r--r--)
+    rules:
+      - "chmod 644 /etc/passwd"
+      - "chown root:root /etc/passwd"
+
+  - id: "1.5.2"
+    title: "Ensure permissions on /etc/shadow are configured"
+    notes: |
+      Set permissions to 0000 or 0640 on /etc/shadow.
+      Command: chmod 640 /etc/shadow or chmod 000 /etc/shadow
+      Command: chown root:shadow /etc/shadow or root:root
+      Verify: ls -l /etc/shadow
+    rules:
+      - "chmod 640 /etc/shadow"
+      - "chown root:root /etc/shadow"
+
+  - id: "1.5.3"
+    title: "Ensure permissions on /etc/gshadow are configured"
+    notes: |
+      Set permissions to 0000 or 0640 on /etc/gshadow.
+      Command: chmod 640 /etc/gshadow
+      Command: chown root:shadow /etc/gshadow
+    rules:
+      - "chmod 640 /etc/gshadow"
+
+  - id: "1.5.4"
+    title: "Ensure permissions on /etc/group are configured"
+    notes: |
+      Set permissions to 0644 on /etc/group.
+      Command: chmod 644 /etc/group
+      Command: chown root:root /etc/group
+    rules:
+      - "chmod 644 /etc/group"
+
+  - id: "1.6.1"
+    title: "Ensure permissions on /etc/passwd- are configured"
+    notes: |
+      Set permissions to 0644 or more restrictive.
+      Command: chmod 644 /etc/passwd-
+      Command: chown root:root /etc/passwd-
+    rules:
+      - "chmod 644 /etc/passwd-"
+
+  - id: "1.7.1"
+    title: "Ensure permissions on /etc/shadow- are configured"
+    notes: |
+      Set permissions to 0000 or 0640.
+      Command: chmod 640 /etc/shadow-
+      Command: chown root:root /etc/shadow-
+    rules:
+      - "chmod 640 /etc/shadow-"
+
+  - id: "1.8.1"
+    title: "Ensure no world-writable files exist"
+    notes: |
+      Find world-writable files: find / -xdev -type f -perm -0002
+      Remove write permission: chmod o-w <file>
+      Review and fix each file individually.
+    rules:
+      - "find world-writable files"
+      - "chmod o-w"
+
+  - id: "1.9.1"
+    title: "Ensure no unowned files or directories exist"
+    notes: |
+      Find unowned files: find / -xdev -nouser
+      Find ungrouped files: find / -xdev -nogroup
+      Assign owner: chown root:root <file>
+    rules:
+      - "chown root:root"
+      - "find -nouser"
+
+  - id: "1.10.1"
+    title: "Ensure no SUID executables exist"
+    notes: |
+      Find SUID files: find / -xdev -type f -perm -4000
+      Review each file and remove SUID if not needed: chmod -s <file>
+    rules:
+      - "find SUID files"
+      - "chmod -s"
+
+  - id: "1.10.2"
+    title: "Ensure no SGID executables exist"
+    notes: |
+      Find SGID files: find / -xdev -type f -perm -2000
+      Remove SGID: chmod -s <file>
+    rules:
+      - "find SGID files"
+      - "chmod -s"
+
+  - id: "1.11.1"
+    title: "Ensure sticky bit is set on all world-writable directories"
+    notes: |
+      Find world-writable dirs without sticky bit:
+      find / -xdev -type d -perm -0002 -a ! -perm -1000
+      Set sticky bit: chmod +t <directory>
+    rules:
+      - "chmod +t"
+      - "sticky bit"
+
+  - id: "1.12.1"
+    title: "Ensure separate partition exists for /var"
+    notes: |
+      Create separate partition for /var.
+      Edit /etc/fstab to add new partition.
+    rules:
+      - "separate /var partition"
+
+  - id: "1.13.1"
+    title: "Ensure separate partition exists for /var/tmp"
+    notes: |
+      Create separate partition or bind mount for /var/tmp.
+      Options: nodev,nosuid,noexec
+    rules:
+      - "mount /var/tmp with noexec"

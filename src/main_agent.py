@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 
 from .rag.knowledge_store import KnowledgeStore
+from .utils.yaml_utils import extract_yaml
 from .llm.llm_client import LLMClient
 from .llm.prompt_templates import (
     CODE_GENERATION_SYSTEM_PROMPT,
@@ -39,7 +40,7 @@ class SecurityHardeningAgent:
 
     Examples:
         >>> agent = SecurityHardeningAgent()
-        >>> agent.ingest_knowledge("./doc")
+        >>> agent.ingest_knowledge("./data/policies/cis")
         >>> results = agent.harden("SSH 配置", target_host="localhost")
     """
 
@@ -64,7 +65,10 @@ class SecurityHardeningAgent:
         # LLM 客户端
         self.llm_client = LLMClient(
             model=self.config.get("llm_model", "deepseek-chat"),
-            temperature=self.config.get("temperature", 0.1)
+            temperature=self.config.get("temperature", 0.1),
+            model_config_path=self.config.get(
+                "model_config_path", "./configs/model_selector.yaml"
+            )
         )
 
         # 执行器
@@ -323,10 +327,11 @@ class SecurityHardeningAgent:
 
         response = self.llm_client.generate(
             prompt=prompt,
-            system_prompt=CODE_GENERATION_SYSTEM_PROMPT.build()
+            system_prompt=CODE_GENERATION_SYSTEM_PROMPT.build(),
+            task_type="code_generation"
         )
 
-        playbook = self._extract_yaml(response.content)
+        playbook = extract_yaml(response.content)
         return playbook or self._mock_playbook(rule_id, remediation)
 
     def _mock_playbook(self, rule_id: str, remediation: str) -> str:
@@ -338,34 +343,6 @@ class SecurityHardeningAgent:
     - name: Apply remediation
       command: echo "{remediation[:100]}"
 """
-
-    def _extract_yaml(self, text: str) -> Optional[str]:
-        """提取 YAML 内容。"""
-        import re
-        yaml_match = re.search(r'```(?:yaml)?\s*(.*?)```', text, re.DOTALL)
-        if yaml_match:
-            return yaml_match.group(1).strip()
-
-        stripped = text.strip()
-        if self._looks_like_yaml(stripped):
-            return stripped
-
-        for marker in ("---", "- name:", "- hosts:"):
-            index = stripped.find(marker)
-            if index != -1:
-                candidate = stripped[index:].strip()
-                if self._looks_like_yaml(candidate):
-                    return candidate
-
-        return None
-
-    def _looks_like_yaml(self, text: str) -> bool:
-        """判断文本是否看起来像可执行的 playbook/yaml。"""
-        if not text:
-            return False
-
-        yaml_indicators = ["hosts:", "tasks:", "- name:", "gather_facts:", "become:"]
-        return any(indicator in text for indicator in yaml_indicators)
 
     def harden(
         self,

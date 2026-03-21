@@ -1,5 +1,6 @@
 """单元测试 - LLM 模块."""
 
+import os
 from unittest.mock import patch, MagicMock
 import pytest
 
@@ -12,21 +13,24 @@ class TestLLMClient:
 
     def test_init_without_api_key(self):
         """测试无 API Key 初始化。"""
-        client = LLMClient(api_key=None)
-        assert not client.is_available
+        with patch.dict(os.environ, {}, clear=True):
+            client = LLMClient(api_key=None)
+            assert not client.is_available
 
     def test_generate_mock(self):
         """测试生成模拟响应。"""
-        client = LLMClient(api_key=None)
-        response = client.generate("test prompt")
-        assert isinstance(response, LLMResponse)
-        assert "Mock" in response.content
+        with patch.dict(os.environ, {}, clear=True):
+            client = LLMClient(api_key=None)
+            response = client.generate("test prompt")
+            assert isinstance(response, LLMResponse)
+            assert "Mock" in response.content
 
     def test_generate_batch(self):
         """测试批量生成。"""
-        client = LLMClient(api_key=None)
-        responses = client.generate_batch(["prompt1", "prompt2"])
-        assert len(responses) == 2
+        with patch.dict(os.environ, {}, clear=True):
+            client = LLMClient(api_key=None)
+            responses = client.generate_batch(["prompt1", "prompt2"])
+            assert len(responses) == 2
 
 
 class TestLLMResponse:

@@ -1,0 +1,263 @@
+{
+  "timestamp": "2026-03-22T01:05:20.907031",
+  "mode": "live",
+  "total_duration_seconds": 329.14,
+  "summary": {
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 100.0
+  },
+  "results": [
+    {
+      "metric_name": "知识检索准确率",
+      "target": "> 90%",
+      "actual_value": 90.0,
+      "passed": true,
+      "details": {
+        "hits": 9,
+        "total": 10,
+        "cases": [
+          {
+            "query": "SSH root login",
+            "hit": true,
+            "matched": 4,
+            "total_keywords": 4,
+            "results_count": 5
+          },
+          {
+            "query": "password policy",
+            "hit": true,
+            "matched": 2,
+            "total_keywords": 4,
+            "results_count": 5
+          },
+          {
+            "query": "firewall configuration",
+            "hit": true,
+            "matched": 3,
+            "total_keywords": 3,
+            "results_count": 5
+          },
+          {
+            "query": "file permissions",
+            "hit": true,
+            "matched": 4,
+            "total_keywords": 4,
+            "results_count": 5
+          },
+          {
+            "query": "audit logging",
+            "hit": true,
+            "matched": 2,
+            "total_keywords": 4,
+            "results_count": 5
+          },
+          {
+            "query": "kernel parameters",
+            "hit": true,
+            "matched": 3,
+            "total_keywords": 3,
+            "results_count": 5
+          },
+          {
+            "query": "user account management",
+            "hit": true,
+            "matched": 2,
+            "total_keywords": 3,
+            "results_count": 5
+          },
+          {
+            "query": "network configuration",
+            "hit": true,
+            "matched": 3,
+            "total_keywords": 3,
+            "results_count": 5
+          },
+          {
+            "query": "SELinux enforcement",
+            "hit": true,
+            "matched": 3,
+            "total_keywords": 3,
+            "results_count": 5
+          },
+          {
+            "query": "cron job security",
+            "hit": false,
+            "matched": 1,
+            "total_keywords": 3,
+            "results_count": 5
+          }
+        ]
+      },
+      "duration_seconds": 1.24
+    },
+    {
+      "metric_name": "代码生成准确率",
+      "target": "> 85%",
+      "actual_value": 100.0,
+      "passed": true,
+      "details": {
+        "valid": 5,
+        "total": 5,
+        "cases": [
+          {
+            "rule_id": "5.2.1",
+            "valid": true,
+            "has_structure": true,
+            "yaml_parseable": true,
+            "length": 350
+          },
+          {
+            "rule_id": "5.3.1",
+            "valid": true,
+            "has_structure": true,
+            "yaml_parseable": true,
+            "length": 226
+          },
+          {
+            "rule_id": "3.4.1",
+            "valid": true,
+            "has_structure": true,
+            "yaml_parseable": true,
+            "length": 386
+          },
+          {
+            "rule_id": "1.1.1",
+            "valid": true,
+            "has_structure": true,
+            "yaml_parseable": true,
+            "length": 169
+          },
+          {
+            "rule_id": "4.1.1",
+            "valid": true,
+            "has_structure": true,
+            "yaml_parseable": true,
+            "length": 208
+          }
+        ]
+      },
+      "duration_seconds": 17.28
+    },
+    {
+      "metric_name": "自愈成功率",
+      "target": "> 70%",
+      "actual_value": 100.0,
+      "passed": true,
+      "details": {
+        "healed": 3,
+        "total": 3,
+        "cases": [
+          {
+            "rule": "Install web server",
+            "healed": true,
+            "success": true,
+            "attempts": 2,
+            "playbook_changed": true
+          },
+          {
+            "rule": "Copy configuration file",
+            "healed": true,
+            "success": true,
+            "attempts": 2,
+            "playbook_changed": true
+          },
+          {
+            "rule": "Set correct file permissions",
+            "healed": true,
+            "success": true,
+            "attempts": 2,
+            "playbook_changed": true
+          }
+        ]
+      },
+      "duration_seconds": 257.16
+    },
+    {
+      "metric_name": "平均响应时间",
+      "target": "< 30s",
+      "actual_value": 3.04,
+      "passed": true,
+      "details": {
+        "avg_seconds": 3.04,
+        "max_seconds": 3.57,
+        "min_seconds": 2.59,
+        "samples": 5
+      },
+      "duration_seconds": 0.0
+    },
+    {
+      "metric_name": "加固覆盖率",
+      "target": "> 80%",
+      "actual_value": 90.0,
+      "passed": true,
+      "details": {
+        "covered": 9,
+        "total": 10,
+        "cases": [
+          {
+            "section": "Initial Setup",
+            "covered": false,
+            "has_results": true,
+            "can_generate": false
+          },
+          {
+            "section": "Services",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          },
+          {
+            "section": "Network Configuration",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          },
+          {
+            "section": "Logging and Auditing",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          },
+          {
+            "section": "Access Authentication Authorization",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          },
+          {
+            "section": "System Maintenance",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          },
+          {
+            "section": "Filesystem Configuration",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          },
+          {
+            "section": "Software Updates",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          },
+          {
+            "section": "User Accounts",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          },
+          {
+            "section": "SSH Server",
+            "covered": true,
+            "has_results": true,
+            "can_generate": true
+          }
+        ]
+      },
+      "duration_seconds": 38.25
+    }
+  ]
+}

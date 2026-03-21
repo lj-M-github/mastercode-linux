@@ -6,6 +6,7 @@ import pytest
 from src.feedback.result_parser import ResultParser, ExecutionResult
 from src.feedback.error_analyzer import ErrorAnalyzer, ErrorAnalysis
 from src.feedback.self_heal import SelfHealer, HealingResult
+from src.utils.yaml_utils import extract_yaml
 
 
 class TestExecutionResult:
@@ -144,20 +145,52 @@ class TestSelfHealer:
   hosts: localhost
 ```
 """
-        yaml = healer._extract_yaml(text)
-        assert "- name: Test" in yaml
+        result = extract_yaml(text)
+        assert result is not None
+        assert "- name: Test" in result
+        assert "```" not in result
+        assert "Here is" not in result
+
+    def test_extract_yaml_from_code_block_no_tag(self, healer):
+        """测试从无 yaml 标签的代码块提取。"""
+        text = """Result:
+```
+- name: NoTag
+  hosts: localhost
+  tasks: []
+```
+"""
+        result = extract_yaml(text)
+        assert result is not None
+        assert "```" not in result
+        assert "- name: NoTag" in result
 
     def test_extract_yaml_plain(self, healer):
         """测试提取纯 YAML。"""
         text = "- name: Test\n  hosts: localhost"
-        yaml = healer._extract_yaml(text)
-        assert "- name: Test" in yaml
+        result = extract_yaml(text)
+        assert result is not None
+        assert "- name: Test" in result
+
+    def test_extract_yaml_with_dash_prefix(self, healer):
+        """测试以 --- 开头的 YAML 提取。"""
+        text = """---
+- name: Play
+  hosts: all
+  tasks:
+    - name: Do stuff
+      command: echo ok
+"""
+        result = extract_yaml(text)
+        assert result is not None
+        assert "- name: Play" in result
+        assert result.startswith("---")
 
     def test_extract_yaml_rejects_plain_explanation(self, healer):
         """测试纯说明文字不会被当作 YAML 返回。"""
         text = "Here is the fixed playbook with some explanation only."
-        yaml = healer._extract_yaml(text)
-        assert yaml == ""
+        result = extract_yaml(text)
+        assert result is None
 
     def test_is_fixed(self, healer):
         """测试判断是否已修复。"""

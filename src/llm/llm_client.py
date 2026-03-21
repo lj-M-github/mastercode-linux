@@ -2,13 +2,24 @@
 
 import os
 import yaml
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Any, Optional, Union
+
+# 加载 .env 文件中的环境变量
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 try:
     from openai import OpenAI
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClient:
@@ -52,8 +63,8 @@ class LLMClient:
         """
         self.model = model
         self.temperature = temperature
-        self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
-        self.base_url = base_url or self.DEFAULT_BASE_URL
+        self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY") or os.getenv("OPENAI_API_KEY")
+        self.base_url = base_url or os.getenv("OPENAI_BASE_URL") or self.DEFAULT_BASE_URL
 
         # 加载模型配置
         self.model_config = self._load_model_config(model_config_path)
@@ -76,7 +87,8 @@ class LLMClient:
                 return yaml.safe_load(f) or {}
         except FileNotFoundError:
             return {}
-        except yaml.YAMLError:
+        except yaml.YAMLError as e:
+            logger.warning(f"YAML 解析错误：{e}")
             return {}
 
     def _init_client(self) -> None:
@@ -152,9 +164,13 @@ class LLMClient:
         if not task_type or not self.model_config:
             return self.model
 
-        tasks_config = self.model_config.get("tasks", {})
-        if task_type in tasks_config:
-            return tasks_config[task_type].get("model", self.model)
+        models_config = self.model_config.get("models", {})
+        if task_type in models_config:
+            task_cfg = models_config[task_type]
+            # 同步更新温度参数
+            if "temperature" in task_cfg:
+                self.temperature = task_cfg["temperature"]
+            return task_cfg.get("model", self.model)
         return self.model
 
     def _mock_response(self, prompt: str) -> "LLMResponse":
@@ -175,18 +191,39 @@ class LLMClient:
     def generate_batch(
         self,
         prompts: List[str],
-        system_prompt: Optional[str] = None
+        system_prompt: Optional[str] = None,
+        max_workers: int = 5
     ) -> List["LLMResponse"]:
-        """批量生成响应。
+        """批量生成响应（并发执行）。
 
         Args:
             prompts: 提示词列表
             system_prompt: 系统提示词
+            max_workers: 最大并发线程数，默认 5
 
         Returns:
             LLMResponse 对象列表
+
+        注意:
+            使用 ThreadPoolExecutor 并发执行 API 请求，
+            可以显著提高批量生成的速度。
         """
-        return [self.generate(prompt, system_prompt) for prompt in prompts]
+        def generate_single(prompt: str) -> LLMResponse:
+            return self.generate(prompt, system_prompt)
+
+        results = []
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # 提交所有任务
+            future_to_prompt = {executor.submit(generate_single, prompt): i
+                               for i, prompt in enumerate(prompts)}
+
+            # 按原始顺序收集结果
+            results = [None] * len(prompts)
+            for future in as_completed(future_to_prompt):
+                index = future_to_prompt[future]
+                results[index] = future.result()
+
+        return results
 
     @property
     def is_available(self) -> bool:

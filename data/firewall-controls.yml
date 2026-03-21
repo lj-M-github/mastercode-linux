@@ -1,0 +1,155 @@
+# Firewall Security Controls
+# CIS Benchmark: Network Firewall Configuration
+
+policy: "CIS Benchmark Level 1"
+product: "Linux Server"
+version: "1.0.0"
+
+controls:
+  - id: "3.4.1"
+    title: "Ensure a firewall package is installed"
+    notes: |
+      Install firewalld or ufw or iptables.
+      RHEL/CentOS: yum install firewalld
+      Ubuntu/Debian: apt install ufw
+      Command: apt install iptables nftables
+    rules:
+      - "install firewalld"
+      - "install ufw"
+      - "install iptables"
+
+  - id: "3.4.2"
+    title: "Ensure firewall service is enabled and running"
+    notes: |
+      Enable and start firewalld:
+      systemctl enable --now firewalld
+      For ufw:
+      ufw enable
+      For iptables:
+      systemctl enable iptables
+    rules:
+      - "systemctl enable firewalld"
+      - "ufw enable"
+
+  - id: "3.4.3"
+    title: "Ensure default deny firewall policy"
+    notes: |
+      Set default policy to deny all incoming connections.
+      firewalld: firewall-cmd --set-default-zone=drop
+      ufw: ufw default deny incoming
+      iptables: iptables -P INPUT DROP
+    rules:
+      - "firewall-cmd --set-default-zone=drop"
+      - "iptables -P INPUT DROP"
+      - "ufw default deny"
+
+  - id: "3.4.4"
+    title: "Ensure loopback traffic is configured"
+    notes: |
+      Allow loopback interface traffic.
+      iptables -A INPUT -i lo -j ACCEPT
+      iptables -A OUTPUT -o lo -j ACCEPT
+      Drop traffic to loopback from external:
+      iptables -A INPUT -s 127.0.0.0/8 ! -i lo -j DROP
+    rules:
+      - "iptables -A INPUT -i lo"
+      - "allow loopback"
+
+  - id: "3.4.5"
+    title: "Ensure outbound and established connections are configured"
+    notes: |
+      Allow established connections:
+      iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+      Allow outbound:
+      iptables -A OUTPUT -m state --state NEW,ESTABLISHED -j ACCEPT
+    rules:
+      - "iptables -m state --state ESTABLISHED"
+      - "allow established connections"
+
+  - id: "3.4.6"
+    title: "Ensure SSH access is restricted"
+    notes: |
+      Allow SSH from specific networks only.
+      firewalld: firewall-cmd --add-service=ssh --permanent
+      iptables: iptables -A INPUT -p tcp --dport 22 -s <network> -j ACCEPT
+      ufw: ufw allow from <network> to any port 22
+    rules:
+      - "firewall-cmd --add-service=ssh"
+      - "iptables --dport 22"
+      - "ufw allow 22"
+
+  - id: "3.4.7"
+    title: "Ensure firewall rules exist for all open ports"
+    notes: |
+      List open ports: netstat -tulpn
+      Create rules for each service.
+      iptables -A INPUT -p tcp --dport <port> -j ACCEPT
+    rules:
+      - "iptables -A INPUT -p tcp"
+      - "firewall-cmd --add-port"
+
+  - id: "3.5.1"
+    title: "Ensure iptables are flushed for correct chains"
+    notes: |
+      Flush iptables rules:
+      iptables -F
+      iptables -X
+      iptables -t nat -F
+      iptables -t mangle -F
+    rules:
+      - "iptables -F"
+      - "iptables -X"
+
+  - id: "3.5.2"
+    title: "Ensure nftables is configured"
+    notes: |
+      Install nftables: apt install nftables
+      Create table: nft add table inet filter
+      Add chain: nft add chain inet filter input { type filter hook input priority 0 \; }
+      Add rule: nft add rule inet filter input ct state established accept
+    rules:
+      - "nft add table"
+      - "nft add chain"
+      - "nftables configuration"
+
+  - id: "3.5.3"
+    title: "Ensure firewalld default zone is set"
+    notes: |
+      Check default zone: firewall-cmd --get-default-zone
+      Set default zone: firewall-cmd --set-default-zone=public
+      List zones: firewall-cmd --get-zones
+    rules:
+      - "firewall-cmd --set-default-zone"
+      - "firewalld zone"
+
+  - id: "3.5.4"
+    title: "Ensure firewalld drops unnecessary services"
+    notes: |
+      List services: firewall-cmd --list-services
+      Remove service: firewall-cmd --remove-service=<service> --permanent
+      Only allow necessary services.
+    rules:
+      - "firewall-cmd --remove-service"
+      - "firewalld service"
+
+  - id: "3.5.5"
+    title: "Ensure UFW is configured"
+    notes: |
+      Reset UFW: ufw reset
+      Set defaults: ufw default deny incoming, ufw default allow outgoing
+      Enable: ufw enable
+      Status: ufw status verbose
+    rules:
+      - "ufw default deny"
+      - "ufw allow"
+      - "ufw enable"
+
+  - id: "3.6.1"
+    title: "Ensure wireless interfaces are disabled"
+    notes: |
+      List wireless: iw dev
+      Disable: ip link set <interface> down
+      Or block at kernel level: echo "blacklist <driver>" >> /etc/modprobe.d/disable-wireless.conf
+    rules:
+      - "ip link set down"
+      - "disable wireless"
