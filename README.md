@@ -1,6 +1,6 @@
 # Security Hardening Framework with RAG and LLM
 
-A framework for automated security hardening using Retrieval-Augmented Generation (RAG) and Large Language Models (LLM). The system ingests security benchmark documents (PDFs), processes them through a RAG pipeline, and uses an intelligent agent to generate and execute hardening actions via Ansible.
+1A framework for automated security hardening using Retrieval-Augmented Generation (RAG) and Large Language Models (LLM). The system ingests security benchmark documents (PDFs), processes them through a RAG pipeline, and uses an intelligent agent to generate and execute hardening actions via Ansible.
 
 ## Architecture Overview
 
