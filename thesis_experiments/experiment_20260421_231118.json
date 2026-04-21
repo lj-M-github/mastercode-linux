@@ -1,0 +1,201 @@
+{
+  "timestamp": "2026-04-21T23:11:18.762460",
+  "num_runs": 3,
+  "summary": {
+    "avg_duration_sec": 0.1,
+    "avg_remediation_sec": 0.04,
+    "avg_fix_rate_pct": 0.0,
+    "avg_rules_fixed": 0.0
+  },
+  "runs": [
+    {
+      "name": "run_1",
+      "total_duration_sec": 0.13,
+      "remediation_duration_sec": 0.07,
+      "initial_compliant": 0,
+      "initial_non_compliant": 5,
+      "final_compliant": 0,
+      "final_non_compliant": 5,
+      "rules_fixed": 0,
+      "fix_rate_pct": 0.0,
+      "rule_snapshots": [
+        {
+          "rule_id": "5.2.1",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.014436912536621094,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.2",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.014436912536621094,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.3",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.014436912536621094,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.4",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.014436912536621094,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.5",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.014436912536621094,
+          "message": ""
+        }
+      ]
+    },
+    {
+      "name": "run_2",
+      "total_duration_sec": 0.09,
+      "remediation_duration_sec": 0.04,
+      "initial_compliant": 0,
+      "initial_non_compliant": 5,
+      "final_compliant": 0,
+      "final_non_compliant": 5,
+      "rules_fixed": 0,
+      "fix_rate_pct": 0.0,
+      "rule_snapshots": [
+        {
+          "rule_id": "5.2.1",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.00726318359375,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.2",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.00726318359375,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.3",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.00726318359375,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.4",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.00726318359375,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.5",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.00726318359375,
+          "message": ""
+        }
+      ]
+    },
+    {
+      "name": "run_3",
+      "total_duration_sec": 0.08,
+      "remediation_duration_sec": 0.02,
+      "initial_compliant": 0,
+      "initial_non_compliant": 5,
+      "final_compliant": 0,
+      "final_non_compliant": 5,
+      "rules_fixed": 0,
+      "fix_rate_pct": 0.0,
+      "rule_snapshots": [
+        {
+          "rule_id": "5.2.1",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.0042969703674316405,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.2",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.0042969703674316405,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.3",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.0042969703674316405,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.4",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.0042969703674316405,
+          "message": ""
+        },
+        {
+          "rule_id": "5.2.5",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": false,
+          "final_state": "unknown",
+          "convergence_time_sec": 0.0042969703674316405,
+          "message": ""
+        }
+      ]
+    }
+  ]
+}

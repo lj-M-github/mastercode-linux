@@ -113,8 +113,24 @@ class AnsibleRunner:
             verbose: 是否启用详细输出模式，默认 False
         """
         self.playbook_dir = Path(playbook_dir)
+        self.playbook_dir.mkdir(parents=True, exist_ok=True)
         self.verbose = verbose
         self._last_output: List[str] = []
+
+    def save_playbook(self, content: str, rule_id: str) -> str:
+        """Save playbook content to a file and return the path.
+
+        Args:
+            content: YAML playbook content
+            rule_id: Rule identifier (used for filename)
+
+        Returns:
+            Absolute path to the saved playbook file
+        """
+        safe_id = rule_id.replace(".", "_")
+        playbook_path = (self.playbook_dir / f"{safe_id}_remediation.yml").resolve()
+        playbook_path.write_text(content, encoding="utf-8")
+        return str(playbook_path)
 
     def _error_result(
         self,
@@ -167,7 +183,7 @@ class AnsibleRunner:
             - 执行超时（300 秒）：返回 success=False，error 包含"timed out"
             - ansible-playbook 未找到：返回 success=False，error 包含"command not found"
         """
-        playbook_path = self.playbook_dir / playbook_name
+        playbook_path = Path(playbook_name) if Path(playbook_name).is_absolute() else self.playbook_dir / playbook_name
 
         # 检查剧本文件是否存在
         if not playbook_path.exists():
@@ -175,6 +191,10 @@ class AnsibleRunner:
 
         # 构建命令
         cmd = ["ansible-playbook", str(playbook_path)]
+
+        # When no limit specified (localhost), use inline inventory to match `hosts: all`
+        if limit is None:
+            cmd.extend(["-i", "localhost,", "-c", "local"])
 
         # 添加额外变量
         if extra_vars:

@@ -124,9 +124,6 @@ class LLMClient:
         # 根据任务类型动态选择模型
         model_to_use = self._select_model_for_task(task_type)
 
-        if self.client is None:
-            return self._mock_response(prompt)
-
         max_tokens = max_tokens or self.DEFAULT_MAX_TOKENS
         temperature = temperature if temperature is not None else self.temperature
 
@@ -172,21 +169,6 @@ class LLMClient:
                 self.temperature = task_cfg["temperature"]
             return task_cfg.get("model", self.model)
         return self.model
-
-    def _mock_response(self, prompt: str) -> "LLMResponse":
-        """生成模拟响应（无 API Key 时）。
-
-        Args:
-            prompt: 提示词
-
-        Returns:
-            模拟响应
-        """
-        return LLMResponse(
-            content=f"[Mock Response] Received: {prompt[:100]}...",
-            model="mock",
-            usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
-        )
 
     def generate_batch(
         self,

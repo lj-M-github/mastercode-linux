@@ -1,0 +1,201 @@
+{
+  "timestamp": "2026-04-22T02:02:28.795602",
+  "num_runs": 3,
+  "summary": {
+    "avg_duration_sec": 110.58,
+    "avg_remediation_sec": 110.5,
+    "avg_fix_rate_pct": 0.0,
+    "avg_rules_fixed": 0.0
+  },
+  "runs": [
+    {
+      "name": "run_1",
+      "total_duration_sec": 109.09,
+      "remediation_duration_sec": 108.98,
+      "initial_compliant": 0,
+      "initial_non_compliant": 5,
+      "final_compliant": 0,
+      "final_non_compliant": 5,
+      "rules_fixed": 0,
+      "fix_rate_pct": 0.0,
+      "rule_snapshots": [
+        {
+          "rule_id": "5.2.1",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 1,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 21.79644079208374,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.2",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 1,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 21.79644079208374,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.3",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 1,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 21.79644079208374,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.4",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 1,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 21.79644079208374,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.5",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 1,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 21.79644079208374,
+          "message": "Remediation failed after maximum retries"
+        }
+      ]
+    },
+    {
+      "name": "run_2",
+      "total_duration_sec": 117.83,
+      "remediation_duration_sec": 117.77,
+      "initial_compliant": 0,
+      "initial_non_compliant": 5,
+      "final_compliant": 0,
+      "final_non_compliant": 5,
+      "rules_fixed": 0,
+      "fix_rate_pct": 0.0,
+      "rule_snapshots": [
+        {
+          "rule_id": "5.2.1",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 2,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 23.55355887413025,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.2",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 2,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 23.55355887413025,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.3",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 2,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 23.55355887413025,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.4",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 2,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 23.55355887413025,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.5",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 2,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 23.55355887413025,
+          "message": "Remediation failed after maximum retries"
+        }
+      ]
+    },
+    {
+      "name": "run_3",
+      "total_duration_sec": 104.82,
+      "remediation_duration_sec": 104.75,
+      "initial_compliant": 0,
+      "initial_non_compliant": 5,
+      "final_compliant": 0,
+      "final_non_compliant": 5,
+      "rules_fixed": 0,
+      "fix_rate_pct": 0.0,
+      "rule_snapshots": [
+        {
+          "rule_id": "5.2.1",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 3,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 20.95054292678833,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.2",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 3,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 20.95054292678833,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.3",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 3,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 20.95054292678833,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.4",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 3,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 20.95054292678833,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.5",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 3,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 20.95054292678833,
+          "message": "Remediation failed after maximum retries"
+        }
+      ]
+    }
+  ]
+}

@@ -11,26 +11,59 @@ from src.llm.prompt_templates import PromptTemplate, SystemPrompt
 class TestLLMClient:
     """LLMClient 测试类。"""
 
-    def test_init_without_api_key(self):
-        """测试无 API Key 初始化。"""
+    def test_is_available_true(self):
+        """测试 LLM 可用状态。"""
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=True):
+            client = LLMClient()
+            assert client.is_available
+
+    def test_is_available_false(self):
+        """测试 LLM 不可用状态。"""
         with patch.dict(os.environ, {}, clear=True):
             client = LLMClient(api_key=None)
             assert not client.is_available
 
-    def test_generate_mock(self):
-        """测试生成模拟响应。"""
+    def test_generate_raises_without_client(self):
+        """测试无客户端时调用 generate 抛出异常。"""
         with patch.dict(os.environ, {}, clear=True):
             client = LLMClient(api_key=None)
+            with pytest.raises(Exception):
+                client.generate("test prompt")
+
+    def test_generate_with_mock_client(self):
+        """测试使用 mock 客户端生成响应。"""
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=True):
+            client = LLMClient()
+            mock_response = MagicMock()
+            mock_response.choices = [MagicMock()]
+            mock_response.choices[0].message.content = "Hello, world!"
+            mock_response.usage = MagicMock()
+            mock_response.usage.prompt_tokens = 10
+            mock_response.usage.completion_tokens = 20
+            mock_response.usage.total_tokens = 30
+            client.client.chat.completions.create = MagicMock(return_value=mock_response)
+
             response = client.generate("test prompt")
             assert isinstance(response, LLMResponse)
-            assert "Mock" in response.content
+            assert response.content == "Hello, world!"
+            assert response.usage["total_tokens"] == 30
 
-    def test_generate_batch(self):
+    def test_generate_batch_with_mock_client(self):
         """测试批量生成。"""
-        with patch.dict(os.environ, {}, clear=True):
-            client = LLMClient(api_key=None)
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=True):
+            client = LLMClient()
+            mock_response = MagicMock()
+            mock_response.choices = [MagicMock()]
+            mock_response.choices[0].message.content = "response"
+            mock_response.usage = MagicMock()
+            mock_response.usage.prompt_tokens = 0
+            mock_response.usage.completion_tokens = 0
+            mock_response.usage.total_tokens = 0
+            client.client.chat.completions.create = MagicMock(return_value=mock_response)
+
             responses = client.generate_batch(["prompt1", "prompt2"])
             assert len(responses) == 2
+            assert all(isinstance(r, LLMResponse) for r in responses)
 
 
 class TestLLMResponse:

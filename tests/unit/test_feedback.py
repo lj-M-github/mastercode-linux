@@ -280,3 +280,101 @@ class TestSelfHealer:
         stats = healer.get_healing_stats(results)
         assert stats["total_attempts"] == 2
         assert stats["successful_healings"] == 1
+
+    # ── new tests for fix.md architecture requirements ────────────────────────
+
+    def test_healing_result_has_failure_reason_field(self):
+        """HealingResult must expose failure_reason field."""
+        r = HealingResult(success=False, failure_reason="max retries exceeded")
+        assert r.failure_reason == "max retries exceeded"
+
+    def test_healing_result_failure_reason_default_empty(self):
+        """failure_reason defaults to empty string."""
+        r = HealingResult(success=True)
+        assert r.failure_reason == ""
+
+    def test_healing_result_has_backoff_delays_field(self):
+        """HealingResult must expose backoff_delays list."""
+        r = HealingResult(success=True, backoff_delays=[0.5, 1.0])
+        assert r.backoff_delays == [0.5, 1.0]
+
+    def test_healing_result_backoff_delays_default_empty(self):
+        """backoff_delays defaults to empty list."""
+        r = HealingResult(success=False)
+        assert r.backoff_delays == []
+
+    def test_heal_no_llm_sets_failure_reason(self):
+        """heal() without LLM must set failure_reason."""
+        healer = SelfHealer(llm_client=None)
+        result = healer.heal("playbook", "error")
+        assert result.failure_reason != ""
+
+    def test_heal_max_retries_sets_failure_reason(self, healer, mock_llm):
+        """After exhausting retries, failure_reason should be set."""
+        mock_llm.generate.return_value = MagicMock(
+            content="```yaml\n- hosts: localhost\n  tasks: []\n```"
+        )
+        failed = MagicMock(success=False, output="", error="fatal: still broken")
+        result = healer.heal(
+            "playbook", "fatal: first error", "rule",
+            execute_fn=lambda _: failed
+        )
+        assert result.success is False
+        assert result.failure_reason != ""
+        assert "Max retries" in result.failure_reason or len(result.failure_reason) > 0
+
+    def test_heal_backoff_delays_grow_with_retries(self, mock_llm):
+        """Each retry after the first should have a longer delay than the previous."""
+        import time
+        healer = SelfHealer(llm_client=mock_llm, max_retries=3, backoff_base=0.001)
+        mock_llm.generate.return_value = MagicMock(
+            content="```yaml\n- hosts: localhost\n  tasks: []\n```"
+        )
+        failed = MagicMock(success=False, output="", error="fatal: err")
+        result = healer.heal(
+            "playbook", "fatal: err", "rule",
+            execute_fn=lambda _: failed
+        )
+        # backoff_delays should have 2 entries (before attempt 2 and 3)
+        assert len(result.backoff_delays) == 2
+        assert result.backoff_delays[1] >= result.backoff_delays[0]
+
+    def test_heal_drift_context_appended_to_prompt(self, healer, mock_llm):
+        """When drift is provided, its JSON should appear in the LLM prompt."""
+        mock_llm.generate.return_value = MagicMock(
+            content="```yaml\n- hosts: localhost\n  tasks: []\n```"
+        )
+        # Create a minimal drift-like object with to_dict()
+        drift_mock = MagicMock()
+        drift_mock.to_dict.return_value = {
+            "rule_id": "5.2.1",
+            "is_compliant": False,
+            "drifts": [{"key": "root_login", "expected": "no", "actual": "yes",
+                        "comparison_type": "regex_match"}],
+        }
+
+        failed = MagicMock(success=False, output="", error="fatal: err")
+        healer.heal(
+            "playbook", "fatal: err", "rule",
+            execute_fn=lambda _: failed,
+            drift=drift_mock,
+        )
+
+        # Check at least one LLM call referenced the drift data
+        assert mock_llm.generate.called
+        prompt_used = mock_llm.generate.call_args.args[0]
+        assert "5.2.1" in prompt_used or "drift" in prompt_used.lower()
+
+    def test_heal_first_attempt_no_delay(self, mock_llm):
+        """First attempt must not delay (backoff_delays length = retries - 1)."""
+        healer = SelfHealer(llm_client=mock_llm, max_retries=2, backoff_base=0.001)
+        mock_llm.generate.return_value = MagicMock(
+            content="```yaml\n- hosts: localhost\n  tasks: []\n```"
+        )
+        failed = MagicMock(success=False, output="", error="fatal: err")
+        result = healer.heal(
+            "playbook", "fatal: err", "rule",
+            execute_fn=lambda _: failed
+        )
+        # max_retries=2 means 2 attempts → 1 backoff (before attempt 2)
+        assert len(result.backoff_delays) == 1

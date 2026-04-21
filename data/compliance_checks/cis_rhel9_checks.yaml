@@ -1,0 +1,142 @@
+# CIS RHEL 9 Compliance Check Specifications
+# 每条规则定义：check_command（在目标主机运行）和 expected_pattern（正则匹配输出）
+# status: pass  → 输出匹配 expected_pattern
+# status: fail  → 输出不匹配 expected_pattern
+# status: skip  → 命令执行错误（无法判断）
+
+policy: "CIS Benchmark for Red Hat Enterprise Linux 9"
+version: "2.0.0"
+
+checks:
+  # ── SSH 配置域 ────────────────────────────────────────────────────────────
+  - rule_id: "5.2.1"
+    title: "Ensure SSH root login is disabled"
+    domain: ssh
+    severity: high
+    check_command: "sshd -T 2>/dev/null | grep -i permitrootlogin"
+    expected_pattern: "permitrootlogin\\s+no"
+    remediation_hint: "Set PermitRootLogin no in /etc/ssh/sshd_config"
+
+  - rule_id: "5.2.2"
+    title: "Ensure SSH Protocol is set to 2"
+    domain: ssh
+    severity: high
+    check_command: "sshd -T 2>/dev/null | grep -i protocol"
+    expected_pattern: "protocol\\s+2"
+    remediation_hint: "Set Protocol 2 in /etc/ssh/sshd_config"
+
+  - rule_id: "5.2.3"
+    title: "Ensure SSH MaxAuthTries is set to 4 or less"
+    domain: ssh
+    severity: medium
+    check_command: "sshd -T 2>/dev/null | grep -i maxauthtries"
+    expected_pattern: "maxauthtries\\s+[1-4]$"
+    remediation_hint: "Set MaxAuthTries 4 in /etc/ssh/sshd_config"
+
+  - rule_id: "5.2.4"
+    title: "Ensure SSH IgnoreRhosts is enabled"
+    domain: ssh
+    severity: high
+    check_command: "sshd -T 2>/dev/null | grep -i ignorerhosts"
+    expected_pattern: "ignorerhosts\\s+yes"
+    remediation_hint: "Set IgnoreRhosts yes in /etc/ssh/sshd_config"
+
+  - rule_id: "5.2.5"
+    title: "Ensure SSH X11 forwarding is disabled"
+    domain: ssh
+    severity: medium
+    check_command: "sshd -T 2>/dev/null | grep -i x11forwarding"
+    expected_pattern: "x11forwarding\\s+no"
+    remediation_hint: "Set X11Forwarding no in /etc/ssh/sshd_config"
+
+  # ── 文件权限域 ────────────────────────────────────────────────────────────
+  - rule_id: "6.1.1"
+    title: "Ensure /etc/passwd permissions are configured (644)"
+    domain: filesystem
+    severity: medium
+    check_command: "stat -c '%a' /etc/passwd"
+    expected_pattern: "^644$"
+    remediation_hint: "chmod 644 /etc/passwd"
+
+  - rule_id: "6.1.2"
+    title: "Ensure /etc/shadow permissions are configured (000)"
+    domain: filesystem
+    severity: high
+    check_command: "stat -c '%a' /etc/shadow"
+    expected_pattern: "^0+$"
+    remediation_hint: "chmod 000 /etc/shadow"
+
+  - rule_id: "6.1.3"
+    title: "Ensure /etc/group permissions are configured (644)"
+    domain: filesystem
+    severity: medium
+    check_command: "stat -c '%a' /etc/group"
+    expected_pattern: "^644$"
+    remediation_hint: "chmod 644 /etc/group"
+
+  - rule_id: "6.1.4"
+    title: "Ensure /etc/gshadow permissions are configured (000)"
+    domain: filesystem
+    severity: high
+    check_command: "stat -c '%a' /etc/gshadow"
+    expected_pattern: "^0+$"
+    remediation_hint: "chmod 000 /etc/gshadow"
+
+  # ── 内核参数域 ────────────────────────────────────────────────────────────
+  - rule_id: "3.1.1"
+    title: "Ensure IP forwarding is disabled"
+    domain: kernel
+    severity: medium
+    check_command: "sysctl net.ipv4.ip_forward"
+    expected_pattern: "net\\.ipv4\\.ip_forward\\s*=\\s*0"
+    remediation_hint: "Set net.ipv4.ip_forward = 0 in /etc/sysctl.conf"
+
+  - rule_id: "3.1.2"
+    title: "Ensure packet redirect sending is disabled"
+    domain: kernel
+    severity: medium
+    check_command: "sysctl net.ipv4.conf.all.send_redirects"
+    expected_pattern: "net\\.ipv4\\.conf\\.all\\.send_redirects\\s*=\\s*0"
+    remediation_hint: "Set net.ipv4.conf.all.send_redirects = 0 in /etc/sysctl.conf"
+
+  - rule_id: "3.2.1"
+    title: "Ensure source routed packets are not accepted"
+    domain: kernel
+    severity: medium
+    check_command: "sysctl net.ipv4.conf.all.accept_source_route"
+    expected_pattern: "net\\.ipv4\\.conf\\.all\\.accept_source_route\\s*=\\s*0"
+    remediation_hint: "Set net.ipv4.conf.all.accept_source_route = 0 in /etc/sysctl.conf"
+
+  # ── 审计日志域 ────────────────────────────────────────────────────────────
+  - rule_id: "4.1.1"
+    title: "Ensure auditd is installed and running"
+    domain: audit
+    severity: high
+    check_command: "systemctl is-active auditd"
+    expected_pattern: "^active$"
+    remediation_hint: "Install auditd and enable the service"
+
+  - rule_id: "4.1.2"
+    title: "Ensure auditd service is enabled at boot"
+    domain: audit
+    severity: high
+    check_command: "systemctl is-enabled auditd"
+    expected_pattern: "^enabled$"
+    remediation_hint: "systemctl enable auditd"
+
+  # ── 防火墙域 ──────────────────────────────────────────────────────────────
+  - rule_id: "3.4.1"
+    title: "Ensure firewalld is installed and running"
+    domain: firewall
+    severity: high
+    check_command: "systemctl is-active firewalld"
+    expected_pattern: "^active$"
+    remediation_hint: "Install and enable firewalld"
+
+  - rule_id: "3.4.2"
+    title: "Ensure firewalld is enabled at boot"
+    domain: firewall
+    severity: high
+    check_command: "systemctl is-enabled firewalld"
+    expected_pattern: "^enabled$"
+    remediation_hint: "systemctl enable firewalld"

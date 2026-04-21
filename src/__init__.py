@@ -7,11 +7,12 @@ Generation (RAG) and Large Language Models (LLM).
 # New modular architecture
 from .preprocessing import PDFParser, TextCleaner, Chunker
 from .vector_db import ChromaClient, EmbeddingModel, VectorStorePersistence
-from .rag import Retriever, Ranker, KnowledgeStore, RetrievalResult, RankedResult
+from .rag import Ranker, KnowledgeStore, RetrievalResult, RankedResult
 from .llm import LLMClient, PromptTemplate, SystemPrompt, LLMResponse
 from .executor import AnsibleRunner, ExecutionResult, PlaybookBuilder, Task, SSHClient, SSHConfig, SSHResult
 from .feedback import ResultParser, ErrorAnalyzer, SelfHealer
 from .reporting import ReportGenerator, AuditLog
+from .compliance import ComplianceAuditor, ComplianceCheckResult
 
 # Main agent
 from .main_agent import SecurityHardeningAgent
@@ -27,7 +28,6 @@ __all__ = [
     "EmbeddingModel",
     "VectorStorePersistence",
     # RAG
-    "Retriever",
     "Ranker",
     "KnowledgeStore",
     "RetrievalResult",
@@ -52,6 +52,9 @@ __all__ = [
     # Reporting
     "ReportGenerator",
     "AuditLog",
+    # Compliance
+    "ComplianceAuditor",
+    "ComplianceCheckResult",
     # Main agent
     "SecurityHardeningAgent"
 ]

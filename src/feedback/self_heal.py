@@ -3,6 +3,7 @@
 from typing import Dict, Any, List, Optional, Tuple, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
+import time
 
 from ..llm.llm_client import LLMClient
 from ..llm.prompt_templates import PromptTemplate, SELF_HEALING_TEMPLATE
@@ -20,12 +21,16 @@ class HealingResult:
         attempts: 尝试次数
         execution_result: 执行结果
         error_history: 错误历史
+        failure_reason: 最终失败原因（超出重试限制时记录）
+        backoff_delays: 每次重试前等待的秒数列表
     """
     success: bool
     rewritten_playbook: str = ""
     attempts: int = 0
     execution_result: Any = None
     error_history: List[str] = field(default_factory=list)
+    failure_reason: str = ""
+    backoff_delays: List[float] = field(default_factory=list)
 
 
 class SelfHealer:
@@ -48,16 +53,19 @@ class SelfHealer:
     def __init__(
         self,
         llm_client: Optional[LLMClient] = None,
-        max_retries: int = DEFAULT_MAX_RETRIES
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        backoff_base: float = 0.5,
     ):
         """初始化自愈器。
 
         Args:
             llm_client: LLM 客户端
             max_retries: 最大重试次数
+            backoff_base: 指数退避基础延迟（秒）；第 n 次重试前等待 base * 2^(n-1) 秒
         """
         self.llm_client = llm_client
         self.max_retries = max_retries
+        self.backoff_base = backoff_base
         self.error_analyzer = ErrorAnalyzer(llm_client)
 
     def heal(
@@ -65,7 +73,8 @@ class SelfHealer:
         original_playbook: str,
         error_log: str,
         original_rule: str = "",
-        execute_fn: Optional[Callable[[str], Any]] = None
+        execute_fn: Optional[Callable[[str], Any]] = None,
+        drift: Any = None,
     ) -> HealingResult:
         """执行自愈。
 
@@ -74,6 +83,7 @@ class SelfHealer:
             error_log: 错误日志
             original_rule: 原始规则
             execute_fn: 执行回调函数，用于实际执行修复后的 Playbook
+            drift: 结构化漂移对象（DriftResult），提供给 LLM 更丰富的上下文
 
         Returns:
             HealingResult 对象
@@ -81,19 +91,27 @@ class SelfHealer:
         if not self.llm_client:
             return HealingResult(
                 success=False,
-                error_history=["No LLM client available"]
+                error_history=["No LLM client available"],
+                failure_reason="No LLM client available",
             )
 
         error_history = []
         current_playbook = original_playbook
         attempted_rewrites = 0
         last_execution_result = None
+        backoff_delays: List[float] = []
 
         for attempt in range(1, self.max_retries + 1):
             # 对不可重试错误立即停止，避免无意义重试
             if not self.can_retry(error_log):
                 error_history.append(f"Attempt {attempt}: non-retryable error")
                 break
+
+            # 指数退避（第一次不等待）
+            if attempt > 1:
+                delay = self.backoff_base * (2 ** (attempt - 2))
+                backoff_delays.append(delay)
+                time.sleep(delay)
 
             # 分析当前错误
             attempted_rewrites += 1
@@ -105,7 +123,8 @@ class SelfHealer:
                 current_playbook,
                 analysis.root_cause,
                 error_log,
-                original_rule
+                original_rule,
+                drift=drift,
             )
 
             if not rewritten:
@@ -123,7 +142,8 @@ class SelfHealer:
                         rewritten_playbook=current_playbook,
                         attempts=attempted_rewrites,
                         execution_result=retry_result,
-                        error_history=error_history
+                        error_history=error_history,
+                        backoff_delays=backoff_delays,
                     )
                 # 更新下一轮错误输入，而不是复用旧的错误
                 retry_error = getattr(retry_result, "error", "") or getattr(retry_result, "output", "")
@@ -143,16 +163,23 @@ class SelfHealer:
                     success=True,
                     rewritten_playbook=current_playbook,
                     attempts=attempted_rewrites,
-                    error_history=error_history
+                    error_history=error_history,
+                    backoff_delays=backoff_delays,
                 )
 
         # 达到最大重试次数
+        failure_reason = (
+            f"Max retries ({self.max_retries}) exceeded. "
+            f"Last error: {error_log[:200]}"
+        )
         return HealingResult(
             success=False,
             rewritten_playbook=current_playbook,
             attempts=attempted_rewrites,
             error_history=error_history,
-            execution_result=last_execution_result
+            execution_result=last_execution_result,
+            failure_reason=failure_reason,
+            backoff_delays=backoff_delays,
         )
 
     def _rewrite_playbook(
@@ -160,7 +187,8 @@ class SelfHealer:
         playbook: str,
         failure_reason: str,
         execution_log: str,
-        original_rule: str
+        original_rule: str,
+        drift: Any = None,
     ) -> str:
         """重写 Playbook。
 
@@ -169,6 +197,7 @@ class SelfHealer:
             failure_reason: 失败原因
             execution_log: 执行日志/错误日志
             original_rule: 原始规则
+            drift: 结构化漂移对象（DriftResult）；提供时追加到 prompt 上下文
 
         Returns:
             重写的 Playbook
@@ -176,11 +205,23 @@ class SelfHealer:
         if not self.llm_client:
             return playbook
 
-        prompt = SELF_HEALING_TEMPLATE.format(
+        base_prompt = SELF_HEALING_TEMPLATE.format(
             failure_reason=failure_reason,
             original_rule=original_rule,
-            execution_log=execution_log
+            execution_log=execution_log,
         )
+
+        # Append structured drift context when available (fix.md requirement)
+        if drift is not None:
+            drift_dict = drift.to_dict() if hasattr(drift, "to_dict") else drift
+            import json
+            drift_str = json.dumps(drift_dict, ensure_ascii=False, indent=2)
+            prompt = (
+                base_prompt
+                + f"\n\n**结构化漂移信息 (Structured Drift)**:\n```json\n{drift_str}\n```"
+            )
+        else:
+            prompt = base_prompt
 
         response = self.llm_client.generate(prompt, task_type="error_analysis")
 
