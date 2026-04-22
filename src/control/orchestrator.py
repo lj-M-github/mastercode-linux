@@ -41,7 +41,8 @@ class Orchestrator:
             model_config_path=config.get('model_config_path', './configs/model_selector.yaml')
         )
         self.ansible_runner = AnsibleRunner(
-            playbook_dir=config.get('playbook_dir', './playbooks')
+            playbook_dir=config.get('playbook_dir', './playbooks'),
+            inventory=config.get('ansible_inventory', '')
         )
         self.knowledge_store = KnowledgeStore(
             db_path=config.get('db_path', './vector_db'),
@@ -149,8 +150,8 @@ Output only the Ansible playbook YAML content."""
             # Save playbook to file
             playbook_path = self.ansible_runner.save_playbook(playbook_content, rule_id)
 
-            # Execute playbook — skip --limit for localhost
-            limit = target_host if target_host != "localhost" else None
+            # Execute playbook — when inventory file is configured, let Ansible use it directly
+            limit = target_host if target_host != "localhost" and not self.ansible_runner.inventory else None
             result = self.ansible_runner.run_playbook(
                 playbook_name=playbook_path,
                 limit=limit

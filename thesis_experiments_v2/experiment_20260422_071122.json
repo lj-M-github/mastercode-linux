@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-04-22T07:11:22.955664",
+  "num_runs": 1,
+  "summary": {
+    "avg_duration_sec": 125.46,
+    "avg_remediation_sec": 125.38,
+    "avg_fix_rate_pct": 0.0,
+    "avg_rules_fixed": 0.0
+  },
+  "runs": [
+    {
+      "name": "run_1",
+      "total_duration_sec": 125.46,
+      "remediation_duration_sec": 125.38,
+      "initial_compliant": 0,
+      "initial_non_compliant": 3,
+      "final_compliant": 0,
+      "final_non_compliant": 3,
+      "rules_fixed": 0,
+      "fix_rate_pct": 0.0,
+      "rule_snapshots": [
+        {
+          "rule_id": "5.2.1",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 1,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 41.79198543230692,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.2",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 1,
+          "success": false,
+          "final_state": "unresolved",
+          "convergence_time_sec": 41.79198543230692,
+          "message": "Remediation failed after maximum retries"
+        },
+        {
+          "rule_id": "5.2.3",
+          "initial_compliant": false,
+          "final_compliant": false,
+          "attempts": 0,
+          "success": true,
+          "final_state": "compliant",
+          "convergence_time_sec": 41.79198543230692,
+          "message": "Rule already compliant"
+        }
+      ]
+    }
+  ]
+}

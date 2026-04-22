@@ -104,17 +104,20 @@ class AnsibleRunner:
     def __init__(
         self,
         playbook_dir: str = "./playbooks",
-        verbose: bool = False
+        verbose: bool = False,
+        inventory: str = ""
     ):
         """初始化 Ansible 执行器。
 
         Args:
             playbook_dir: Ansible 剧本存放目录，默认"./playbooks"
             verbose: 是否启用详细输出模式，默认 False
+            inventory: Ansible inventory 文件路径，空则使用 localhost
         """
         self.playbook_dir = Path(playbook_dir)
         self.playbook_dir.mkdir(parents=True, exist_ok=True)
         self.verbose = verbose
+        self.inventory = Path(inventory) if inventory else None
         self._last_output: List[str] = []
 
     def save_playbook(self, content: str, rule_id: str) -> str:
@@ -127,6 +130,12 @@ class AnsibleRunner:
         Returns:
             Absolute path to the saved playbook file
         """
+        # Fix LLM-generated YAML escape issues
+        content = re.sub(r'\\s\\+', r'[ \\t]+', content)
+        content = re.sub(r"(cmd:\s*['\"])(.*?)(['\"])",
+                         lambda m: m.group(1) + m.group(2).replace('\\s+', '[ \\t]+').replace('\\d+', '[0-9]+') + m.group(3),
+                         content)
+
         safe_id = rule_id.replace(".", "_")
         playbook_path = (self.playbook_dir / f"{safe_id}_remediation.yml").resolve()
         playbook_path.write_text(content, encoding="utf-8")
@@ -192,8 +201,11 @@ class AnsibleRunner:
         # 构建命令
         cmd = ["ansible-playbook", str(playbook_path)]
 
-        # When no limit specified (localhost), use inline inventory to match `hosts: all`
-        if limit is None:
+        # Use inventory file if configured, otherwise default to localhost
+        if self.inventory and self.inventory.exists():
+            cmd.extend(["-i", str(self.inventory)])
+        elif limit is None:
+            # No inventory and no limit — use localhost inline
             cmd.extend(["-i", "localhost,", "-c", "local"])
 
         # 添加额外变量

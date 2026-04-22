@@ -85,9 +85,9 @@ class SSHClient:
         if extra_options:
             cmd.extend(extra_options)
 
-        # 添加密钥文件
+        # 使用指定密钥，不尝试其他密钥
         if self.config.key_file:
-            cmd.extend(["-i", self.config.key_file])
+            cmd.extend(["-o", "IdentitiesOnly=yes", "-i", self.config.key_file])
 
         # 添加主机和目标
         cmd.extend([

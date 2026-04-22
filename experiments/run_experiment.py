@@ -13,10 +13,24 @@ from pathlib import Path
 from typing import List, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
+import re
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.main_agent import SecurityHardeningAgent
+
+
+def parse_inventory(inventory_path: str) -> tuple[str, str, str]:
+    """Parse Ansible inventory file and return (target, ssh_user, ssh_key)."""
+    content = Path(inventory_path).read_text()
+    # Match lines like: IP ansible_user=root ansible_ssh_private_key_file=/path/to/key
+    m = re.search(r'([\d.]+)\s+(?:ansible_user=(\S+)\s+)?(?:ansible_ssh_private_key_file=(\S+))?', content)
+    if m:
+        ip = m.group(1)
+        user = m.group(2) or "root"
+        key = m.group(3) or ""
+        return f"{user}@{ip}", user, key
+    return "localhost", "", ""
 
 
 @dataclass
@@ -54,12 +68,20 @@ class ExperimentRunner:
 
     def run_single(self, agent: SecurityHardeningAgent,
                    rule_ids: List[str], target: str = "localhost",
-                   name: str = "run_1") -> ExperimentResult:
+                   name: str = "run_1", ssh_host: str = "", ssh_key: str = "") -> ExperimentResult:
         t0 = time.time()
+
+        # Build audit kwargs for remote auditing
+        audit_kwargs = {}
+        if ssh_host:
+            audit_kwargs["ssh_host"] = ssh_host
+            audit_kwargs["ssh_username"] = target.split("@")[0] if "@" in target else "test1"
+            if ssh_key:
+                audit_kwargs["ssh_key_file"] = ssh_key
 
         # Step 1: pre-audit
         print(f"\n  [{name}] Pre-audit ({len(rule_ids)} rules)...")
-        pre = agent.audit_compliance(rule_ids)
+        pre = agent.audit_compliance(rule_ids, **audit_kwargs)
         pre_compliant = pre["pass_count"]
         pre_non = pre["fail_count"]
 
@@ -71,7 +93,7 @@ class ExperimentRunner:
 
         # Step 3: post-audit
         print(f"  [{name}] Post-audit...")
-        post = agent.audit_compliance(rule_ids)
+        post = agent.audit_compliance(rule_ids, **audit_kwargs)
         post_compliant = post["pass_count"]
         post_non = post["fail_count"]
 
@@ -109,10 +131,10 @@ class ExperimentRunner:
 
     def run_multiple(self, agent: SecurityHardeningAgent,
                      rule_ids: List[str], target: str = "localhost",
-                     num_runs: int = 3) -> List[ExperimentResult]:
+                     num_runs: int = 3, ssh_host: str = "", ssh_key: str = "") -> List[ExperimentResult]:
         results = []
         for i in range(1, num_runs + 1):
-            r = self.run_single(agent, rule_ids, target, f"run_{i}")
+            r = self.run_single(agent, rule_ids, target, f"run_{i}", ssh_host, ssh_key)
             results.append(r)
             print(f"  {r.name}: fixed {r.rules_fixed}/{r.initial_non_compliant} "
                   f"({r.fix_rate_pct}%) in {r.remediation_duration_sec}s")
@@ -146,6 +168,8 @@ def main():
     parser.add_argument("--num-rules", type=int, default=5)
     parser.add_argument("--num-runs", type=int, default=3)
     parser.add_argument("--doc-dir", type=str, default="./data")
+    parser.add_argument("--inventory", type=str, default="", help="Ansible inventory file path")
+    parser.add_argument("--ssh-key", type=str, default="", help="SSH private key file path")
     args = parser.parse_args()
 
     # ── Agent setup ────────────────────────────────────────────────
@@ -157,6 +181,8 @@ def main():
         "report_dir": "./reports",
         "audit_dir": "./audit_logs",
         "compliance_checks_file": "./data/compliance_checks/cis_rhel9_checks.yaml",
+        "ansible_inventory": args.inventory,
+        "ssh_key_file": args.ssh_key,
     }
     agent = SecurityHardeningAgent(config)
 
@@ -180,12 +206,28 @@ def main():
     # ── Rule selection ─────────────────────────────────────────────
     test_rules = [f"5.2.{i}" for i in range(1, min(args.num_rules + 1, 6))]
     print(f"  Rules: {test_rules}")
+
+    # ── Remote target setup ────────────────────────────────────────
+    remote_target = args.target
+    if args.inventory and Path(args.inventory).exists():
+        ssh_target, ssh_user, ssh_key = parse_inventory(args.inventory)
+        remote_target = ssh_target
+        if ssh_key:
+            config["ssh_key_file"] = ssh_key
+        print(f"  SSH Target: {remote_target}")
+        print(f"  SSH Key: {ssh_key}")
+    elif args.target != "localhost":
+        print(f"  SSH Target: {args.target}")
+    else:
+        print(f"  Mode: Localhost")
     print("=" * 60)
 
     # ── Execute ────────────────────────────────────────────────────
     runner = ExperimentRunner(output_dir=args.output_dir)
     try:
-        results = runner.run_multiple(agent, test_rules, args.target, args.num_runs)
+        results = runner.run_multiple(agent, test_rules, remote_target, args.num_runs,
+                                       ssh_host=remote_target if remote_target != "localhost" else "",
+                                       ssh_key=args.ssh_key)
         fp = runner.save_report()
         print(f"\n{'=' * 60}")
         print("EXPERIMENT COMPLETED")

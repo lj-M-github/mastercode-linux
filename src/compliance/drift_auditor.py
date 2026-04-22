@@ -119,8 +119,8 @@ class DriftAuditor:
             return "", str(exc)
 
     def _run_command_ssh(self, command: str) -> tuple[str, str]:
-        """Execute shell command on a remote host via SSH."""
-        result = self.ssh_client.execute(command, timeout=self._timeout)
+        """Execute shell command on a remote host via SSH with sudo."""
+        result = self.ssh_client.execute(f"sudo {command}", timeout=self._timeout)
         return result.stdout.strip(), result.stderr.strip()
 
     def _run_command(self, command: str) -> tuple[str, str]:

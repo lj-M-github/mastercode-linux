@@ -1,157 +1,63 @@
-You are refactoring an autonomous security compliance system.
+# 项目修复进度
 
-The current architecture includes:
+> 最后更新: 2026-04-22
 
-Event-driven document ingestion
-LLM-generated audit probe scripts
-RAG-augmented remediation playbook generation
-Post-execution validation
-Self-healing retry loop
-Knowledge consolidation
+## 已完成的修复
 
-This architecture must be redesigned into a deterministic, rule-driven closed-loop system.
+### 第一轮：本地环境 0% 修复率根因分析
+- `src/executor/ansible_runner.py` — 新增 `save_playbook()` 方法
+- `src/control/orchestrator.py` — 修复 `execute_remediation` kwargs（playbook_name/limit）
+- `src/control/orchestrator.py` — `ExecutionResult` dataclass 转 dict
+- `src/executor/ansible_runner.py` — `save_playbook` 返回绝对路径 + `run_playbook` 绝对路径判断
+- `src/control/orchestrator.py` — `generate_remediation` 剥离 LLM markdown 围栏
+- `src/executor/ansible_runner.py` — localhost 使用 `-i localhost, -c local` 替代 `--limit`
+- `src/control/retry_controller.py` — convergence check 加 `current_attempts > 0` 守卫
 
-GOAL ARCHITECTURE
+### 第二轮：远程云服务器适配
+- `src/executor/ssh_client.py` — 添加 `IdentitiesOnly=yes` SSH 选项
+- `src/compliance/drift_auditor.py` — `_run_command_ssh` 加 `sudo` 前缀
+- `src/executor/ansible_runner.py` — `save_playbook` 自动修复 LLM YAML 转义错误（`\s\+` → `[ \t]+`）
+- `src/executor/ansible_runner.py` — 构造函数增加 `inventory` 参数
+- `src/executor/ansible_runner.py` — `run_playbook` 使用 inventory 文件时跳过 localhost inline
+- `src/control/orchestrator.py` — `execute_remediation` 有 inventory 时不传 `--limit`
+- `src/control/orchestrator.py` — `AnsibleRunner` 初始化传入 `inventory`
+- `experiments/run_experiment.py` — 支持 `--inventory`/`--ssh-key` 参数
+- `experiments/run_experiment.py` — `run_single`/`run_multiple` 支持远程 SSH 审计
+- `experiments/run_experiment.py` — `parse_inventory()` 解析连接信息
 
-The new system must follow this principle:
+## 待解决问题
 
-Rule-Driven Audit
+1. **5.2.2 (SSH Protocol)** — RHEL9/OpenSSH 较新版本 `sshd -T` 不输出 protocol 参数，导致审计总是返回空输出（non-compliant）
+2. **process_rule 验证时序** — Ansible playbook 成功修复后，`verify_remediation` 可能因为 sshd 重启延迟或 SSH 连接复用问题未能检测到最新状态
+3. **多规则批量成功率** — 需要验证 5 条规则完整实验的修复率
 
-AI-Generated Remediation
-Deterministic Verification
-Controlled Self-Healing
-CRITICAL DESIGN CHANGES
+## 运行命令
 
-1️⃣ REMOVE LLM-generated audit probe scripts
+```bash
+# 远程实验
+python3 experiments/run_experiment.py \
+    --num-runs 3 --num-rules 5 \
+    --inventory /home/m/inventory.ini \
+    --output-dir ./thesis_experiments_remote
 
-Audit must NOT depend on LLM output.
+# Inventory 文件位置
+# /home/m/inventory.ini
+# [cloud]
+# 47.118.30.163 ansible_user=test1 ansible_ssh_private_key_file=~/.ssh/id_rsa \
+#   ansible_ssh_common_args='-o IdentitiesOnly=yes' \
+#   ansible_become=yes ansible_become_method=sudo
+```
 
-Instead:
+## 关键文件
 
-Compliance rules must be converted into structured rule models:
-{
-rule_id,
-check_command,
-expected_state,
-comparison_type
-}
-Audit must:
-Execute check_command
-Parse output deterministically
-Perform structured state comparison
-Produce drift objects
-
-No LLM involvement in audit phase.
-
-2️⃣ INTRODUCE DRIFT MODEL
-
-Audit must return:
-
-{
-rule_id,
-is_compliant: bool,
-drifts: [
-{
-key,
-expected,
-actual,
-comparison_type
-}
-]
-}
-
-Drifts must be explicit.
-Boolean-only result is insufficient.
-
-3️⃣ AI IS USED ONLY FOR REMEDIATION GENERATION
-
-LLM input must include:
-
-Original rule text (from RAG)
-Structured drift object
-Target OS information
-Safety constraints
-
-LLM must generate:
-
-Deterministic Ansible Playbook
-Idempotent operations only
-No destructive commands
-No blind system changes
-
-4️⃣ DETERMINISTIC POST-EXECUTION VERIFICATION
-
-After remediation:
-
-Run the same rule-driven audit
-Verify drift elimination
-Do NOT regenerate audit logic
-
-If drifts still exist → enter controlled retry.
-
-5️⃣ CONTROLLED SELF-HEALING LOOP
-
-Add retry controller with:
-
-max_retry_count (default 3)
-backoff strategy
-failure_reason tracking
-
-Self-healing must:
-
-Input:
-
-original rule
-structured drift
-previous playbook
-structured execution error
-
-Output:
-
-revised playbook
-
-If retry exceeds limit:
-
-mark as unresolved
-stop loop
-
-No infinite loops allowed.
-
-6️⃣ REMOVE KNOWLEDGE POLLUTION RISK
-
-Knowledge consolidation must:
-
-Store only successful remediation cases
-Tag with OS version
-Tag with rule_id
-Tag with error signature
-Use versioning
-
-Do NOT blindly store all failures.
-
-DELIVERABLE
-
-Produce:
-
-Updated system architecture description
-Refactored control flow (step-by-step)
-Module responsibility separation
-Revised self-healing logic
-Clear explanation of deterministic vs AI-driven components
-
-Mark clearly:
-
-Deterministic Layer
-AI Layer
-Control Layer
-
-Ensure the final architecture is:
-
-Reproducible
-Deterministic in audit
-Drift-aware
-Retry-controlled
-Suitable for academic publication
-
-Do not simplify the architecture.
-Maintain research-level clarity.
+| 文件 | 说明 |
+|------|------|
+| `src/main_agent.py` | 主 Agent，使用 Orchestrator 模式 |
+| `src/control/orchestrator.py` | 三层架构协调器 |
+| `src/control/retry_controller.py` | 收敛重试逻辑 |
+| `src/executor/ansible_runner.py` | Ansible playbook 执行 |
+| `src/executor/ssh_client.py` | SSH 客户端 |
+| `src/compliance/drift_auditor.py` | 合规审计引擎 |
+| `experiments/run_experiment.py` | 实验运行器 |
+| `data/compliance_checks/cis_rhel9_checks.yaml` | CIS RHEL9 合规规则 |
+| `/home/m/inventory.ini` | Ansible inventory（远程服务器） |
